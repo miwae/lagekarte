@@ -1,0 +1,100 @@
+name: Security Checks
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  http-security:
+    name: HTTPS and Header Checks
+    runs-on: ubuntu-latest
+    if: ${{ vars.LAGEKARTE_URL != '' }}
+    env:
+      TARGET_URL: ${{ vars.LAGEKARTE_URL }}
+    steps:
+      - name: Validate URL and inspect headers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Target URL: ${TARGET_URL}"
+
+          if [[ ! "${TARGET_URL}" =~ ^https?:// ]]; then
+            echo "LAGEKARTE_URL must start with http:// or https://"
+            exit 1
+          fi
+
+          if [[ "${TARGET_URL}" =~ ^https:// ]]; then
+            HTTP_URL="http://${TARGET_URL#https://}"
+            REDIRECT_CODE=$(curl -sS -o /dev/null -w "%{http_code}" -I "${HTTP_URL}")
+            REDIRECT_LOCATION=$(curl -sS -I "${HTTP_URL}" | awk -F': ' 'tolower($1)=="location" {print $2}' | tr -d '\r')
+
+            echo "HTTP status: ${REDIRECT_CODE}"
+            echo "HTTP location: ${REDIRECT_LOCATION}"
+
+            if [[ "${REDIRECT_CODE}" != "301" && "${REDIRECT_CODE}" != "308" ]]; then
+              echo "Expected HTTP->HTTPS redirect with 301 or 308, got ${REDIRECT_CODE}"
+              exit 1
+            fi
+
+            if [[ "${REDIRECT_LOCATION}" != https://* ]]; then
+              echo "Expected redirect location to HTTPS"
+              exit 1
+            fi
+          fi
+
+          HEADER_FILE=$(mktemp)
+          curl -sS -D "${HEADER_FILE}" -o /dev/null "${TARGET_URL}"
+
+          echo "Response headers:"
+          cat "${HEADER_FILE}"
+
+          REQUIRED_HEADERS=(
+            "content-security-policy"
+            "x-content-type-options"
+            "referrer-policy"
+          )
+
+          if [[ "${TARGET_URL}" =~ ^https:// ]]; then
+            REQUIRED_HEADERS+=("strict-transport-security")
+          fi
+
+          for h in "${REQUIRED_HEADERS[@]}"; do
+            if ! grep -qi "^${h}:" "${HEADER_FILE}"; then
+              echo "Missing required header: ${h}"
+              exit 1
+            fi
+          done
+
+          if grep -qi "^server: .*apache/[0-9]" "${HEADER_FILE}"; then
+            echo "Warning: detailed server version is exposed in Server header"
+          fi
+
+  http-security-config-missing:
+    name: URL Variable Missing
+    runs-on: ubuntu-latest
+    if: ${{ vars.LAGEKARTE_URL == '' }}
+    steps:
+      - name: Explain configuration
+        run: |
+          echo "Repository variable LAGEKARTE_URL is not set."
+          echo "Set it to your public URL (for example: https://lagekarte.example.org/lagekarte2/)."
