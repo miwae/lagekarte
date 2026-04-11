@@ -1,0 +1,8 @@
+title = "Lagekarte Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "OwnTracks API-Key ist ein funktionaler Konfig-Wert, kein Secret"
+regexes = ['''OT-[A-Z0-9]{8}-[A-Z0-9]{8}''']
