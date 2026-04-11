@@ -175,6 +175,8 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#f0f4f8;height:10
 #ot-new-tid{flex:1;min-width:0;background:#112240;border:1px solid rgba(232,93,4,.2);color:#f0f4f8;border-radius:4px;padding:.2rem .35rem;font-size:.66rem}
 #ot-add-tid{background:#112240;border:1px solid rgba(232,93,4,.25);color:#c8d4e0;padding:.18rem .42rem;border-radius:4px;cursor:pointer;font-size:.65rem;font-weight:700}
 #ot-add-tid:hover{border-color:#e85d04;color:#f0f4f8}
+#ot-import-otrc{background:#112240;border:1px solid rgba(232,93,4,.25);color:#c8d4e0;padding:.18rem .42rem;border-radius:4px;cursor:pointer;font-size:.65rem;font-weight:700;white-space:nowrap}
+#ot-import-otrc:hover{border-color:#e85d04;color:#f0f4f8}
 #ot-manage-list{max-height:170px;overflow:auto}
 .ot-m-row{display:grid;grid-template-columns:1fr auto auto auto;gap:.25rem;align-items:center;padding:.24rem;border-bottom:1px solid rgba(255,255,255,.05)}
 .ot-m-row:last-child{border-bottom:none}
@@ -352,6 +354,8 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#f0f4f8;height:10
             <div id="ot-manage-add">
               <input id="ot-new-tid" type="text" placeholder="Tracker-ID (tid) hinzufügen...">
               <button id="ot-add-tid" type="button">+ Hinzufügen</button>
+              <button id="ot-import-otrc" type="button" title=".otrc/.json importieren">OTRC Import</button>
+              <input id="ot-import-file" type="file" accept=".otrc,.json,application/json" style="display:none">
             </div>
             <div id="ot-manage-list"></div>
           </div>
@@ -1529,6 +1533,98 @@ function otAgo(ts){
   return Math.floor(s/86400)+'T';
 }
 
+function otFirstDefined(obj, keys){
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i];
+    if(Object.prototype.hasOwnProperty.call(obj,k) && obj[k]!=null) return obj[k];
+  }
+  return null;
+}
+
+function otNormalizeColor(v){
+  var s=String(v==null?'':v).trim();
+  if(/^#[0-9a-fA-F]{3}$/.test(s)){
+    return ('#'+s[1]+s[1]+s[2]+s[2]+s[3]+s[3]).toLowerCase();
+  }
+  if(/^#[0-9a-fA-F]{6}$/.test(s)) return s.toLowerCase();
+  return '';
+}
+
+function otParseBool(v){
+  if(typeof v==='boolean') return v;
+  if(typeof v==='number') return v!==0;
+  if(typeof v==='string'){
+    var s=v.trim().toLowerCase();
+    if(s==='1'||s==='true'||s==='yes'||s==='on') return true;
+    if(s==='0'||s==='false'||s==='no'||s==='off') return false;
+  }
+  return null;
+}
+
+function otCollectImportEntries(node, out){
+  if(!node) return;
+  if(Array.isArray(node)){
+    node.forEach(function(v){otCollectImportEntries(v,out);});
+    return;
+  }
+  if(typeof node!=='object') return;
+
+  var tid=otFirstDefined(node,['tid','tracker_id','trackerId','device_id','deviceId','clientId']);
+  if(tid!=null && String(tid).trim()!=='') out.push(node);
+
+  ['trackers','devices','users','friends','configs','clients','configuration'].forEach(function(k){
+    if(node[k]!=null) otCollectImportEntries(node[k],out);
+  });
+}
+
+function otImportCfg(payload){
+  var entries=[];
+  otCollectImportEntries(payload,entries);
+  if(!entries.length && payload && typeof payload==='object') entries=[payload];
+
+  var seen={};
+  var created=0, updated=0, unchanged=0;
+
+  entries.forEach(function(entry){
+    if(!entry || typeof entry!=='object') return;
+    var tidRaw=otFirstDefined(entry,['tid','tracker_id','trackerId','device_id','deviceId','clientId']);
+    var tid=String(tidRaw==null?'':tidRaw).trim();
+    if(!tid || seen[tid]) return;
+    seen[tid]=1;
+
+    var had=!!otCfg[tid];
+    var cfg=otEnsureCfg(tid);
+    var changed=!had;
+
+    var aliasRaw=otFirstDefined(entry,['alias','name','label','displayName','user_name','username']);
+    if(aliasRaw!=null){
+      var alias=String(aliasRaw).trim();
+      if(cfg.alias!==alias){cfg.alias=alias;changed=true;}
+    }
+
+    var colorRaw=otFirstDefined(entry,['color','colour']);
+    var color=otNormalizeColor(colorRaw);
+    if(color && cfg.color!==color){cfg.color=color;changed=true;}
+
+    var hiddenRaw=otFirstDefined(entry,['hidden','disabled','mute']);
+    var hidden=otParseBool(hiddenRaw);
+    if(hidden!==null && cfg.hidden!==hidden){cfg.hidden=hidden;changed=true;}
+
+    if(changed){
+      if(had) updated++; else created++;
+    }else{
+      unchanged++;
+    }
+  });
+
+  var imported=Object.keys(seen).length;
+  if(created||updated){
+    otSaveCfg();
+    if(otLastData) otRender(otLastData);
+  }
+  return {imported:imported,created:created,updated:updated,unchanged:unchanged};
+}
+
 // Alle 30 Sekunden aktualisieren
 otLoadCfg();
 var otManageToggle=document.getElementById('ot-manage-toggle');
@@ -1546,6 +1642,38 @@ if(otAddTidBtn&&otNewTidInp){
     otSaveCfg();
     otNewTidInp.value='';
     if(otLastData)otRender(otLastData);
+  };
+}
+
+var otImportBtn=document.getElementById('ot-import-otrc');
+var otImportFile=document.getElementById('ot-import-file');
+if(otImportBtn&&otImportFile){
+  otImportBtn.onclick=function(){otImportFile.click();};
+  otImportFile.onchange=function(){
+    var file=otImportFile.files&&otImportFile.files[0];
+    if(!file) return;
+
+    var reader=new FileReader();
+    reader.onload=function(){
+      try{
+        var payload=JSON.parse(String(reader.result||''));
+        var stats=otImportCfg(payload);
+        if(!stats.imported){
+          alert('Keine Tracker-ID in der Datei gefunden.');
+        }else{
+          alert('OTRC-Import fertig: '+stats.imported+' erkannt, '+stats.created+' neu, '+stats.updated+' aktualisiert.');
+        }
+      }catch(e){
+        console.warn('OTRC-Import fehlgeschlagen:',e);
+        alert('Datei konnte nicht als JSON/OTRC gelesen werden.');
+      }
+      otImportFile.value='';
+    };
+    reader.onerror=function(){
+      alert('Datei konnte nicht gelesen werden.');
+      otImportFile.value='';
+    };
+    reader.readAsText(file);
   };
 }
 

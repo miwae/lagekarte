@@ -1,0 +1,13 @@
+{
+  "name": "lagekarte-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Test setup for lagekarte utility logic",
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:js": "jest --runInBand"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

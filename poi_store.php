@@ -33,6 +33,10 @@ function clean_key(string $v): string {
     return preg_replace('/[^a-z0-9_.,\-]/i', '', $v) ?? '';
 }
 
+if (defined('POI_STORE_TEST_MODE') && POI_STORE_TEST_MODE === true) {
+    return;
+}
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
