@@ -38,3 +38,6 @@ venv/
 *.bak
 *.tmp
 *.swp
+backups/
+lagekarte2_live.html
+server_lagekarte2_index.html
