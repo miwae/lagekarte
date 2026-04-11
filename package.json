@@ -1,0 +1,27 @@
+{
+  "name": "lagekarte",
+  "version": "1.0.0",
+  "description": "Webbasierte taktische Lagekarte (Leaflet) fuer Einsatzfuehrung mit:",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest --testPathPatterns='tests/.*\\.test\\.js$'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miwae/lagekarte.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/miwae/lagekarte/issues"
+  },
+  "homepage": "https://github.com/miwae/lagekarte#readme",
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}
