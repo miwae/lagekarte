@@ -1561,25 +1561,42 @@ function otParseBool(v){
   return null;
 }
 
-function otCollectImportEntries(node, out){
-  if(!node) return;
+function otLooksLikeTid(v){
+  return /^[a-zA-Z0-9_\-./]{2,48}$/.test(String(v||''));
+}
+
+function otCollectImportEntries(node, out, seen, parentKey, depth){
+  if(!node || depth>30) return;
+  if(typeof node!=='object') return;
+  if(seen.has(node)) return;
+  seen.add(node);
+
+  var tid=otFirstDefined(node,['tid','tracker_id','trackerId','device_id','deviceId','clientId','topic']);
+  if((tid==null || String(tid).trim()==='') && typeof parentKey==='string' && otLooksLikeTid(parentKey)){
+    var hint=otFirstDefined(node,['alias','name','label','displayName','color','colour','hidden','disabled','mute','user_name','username','device_name','device']);
+    if(hint!=null) tid=parentKey;
+  }
+
+  if(tid!=null && String(tid).trim()!==''){
+    var entry={};
+    Object.keys(node).forEach(function(k){entry[k]=node[k];});
+    entry.__tid=String(tid).trim();
+    out.push(entry);
+  }
+
   if(Array.isArray(node)){
-    node.forEach(function(v){otCollectImportEntries(v,out);});
+    node.forEach(function(v){otCollectImportEntries(v,out,seen,'',depth+1);});
     return;
   }
-  if(typeof node!=='object') return;
 
-  var tid=otFirstDefined(node,['tid','tracker_id','trackerId','device_id','deviceId','clientId']);
-  if(tid!=null && String(tid).trim()!=='') out.push(node);
-
-  ['trackers','devices','users','friends','configs','clients','configuration'].forEach(function(k){
-    if(node[k]!=null) otCollectImportEntries(node[k],out);
+  Object.keys(node).forEach(function(k){
+    otCollectImportEntries(node[k],out,seen,k,depth+1);
   });
 }
 
 function otImportCfg(payload){
   var entries=[];
-  otCollectImportEntries(payload,entries);
+  otCollectImportEntries(payload,entries,new Set(),'root',0);
   if(!entries.length && payload && typeof payload==='object') entries=[payload];
 
   var seen={};
@@ -1587,7 +1604,7 @@ function otImportCfg(payload){
 
   entries.forEach(function(entry){
     if(!entry || typeof entry!=='object') return;
-    var tidRaw=otFirstDefined(entry,['tid','tracker_id','trackerId','device_id','deviceId','clientId']);
+    var tidRaw=entry.__tid!=null?entry.__tid:otFirstDefined(entry,['tid','tracker_id','trackerId','device_id','deviceId','clientId','topic']);
     var tid=String(tidRaw==null?'':tidRaw).trim();
     if(!tid || seen[tid]) return;
     seen[tid]=1;
