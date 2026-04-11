@@ -74,9 +74,13 @@ Body:
 
 ## OwnTracks
 
-Das Frontend fragt einen WordPress-AJAX-Endpunkt ab:
+Das Frontend nutzt einen lokalen HTTP-Endpunkt:
 
-- `action=owntracks_get`
+- `GET /lagekarte2/owntracks_store.php?action=get&days=1&key=...`
+
+Für das Senden aus der OwnTracks-App (Mode: HTTP):
+
+- `POST /lagekarte2/owntracks_store.php?action=ingest&key=...`
 
 Konfigurationswerte stehen in `index.server.live.html`:
 
