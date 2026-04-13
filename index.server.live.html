@@ -8,7 +8,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#f0f4f8;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+html{height:100%}
+body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#f0f4f8;height:100%;min-height:100vh;min-height:100dvh;overflow:hidden;display:flex;flex-direction:column}
 #toolbar{display:flex;flex-direction:column;gap:.2rem;padding:.22rem .5rem .2rem;background:#0f0f1a;border-bottom:1px solid rgba(232,93,4,.3);flex-shrink:0;z-index:1000;position:relative}
 .tb-row{display:flex;align-items:center;gap:.26rem;flex-wrap:wrap}
 .tb-btn{background:#1e3a5c;border:1px solid rgba(232,93,4,.3);color:#f0f4f8;padding:.26rem .58rem;border-radius:4px;cursor:pointer;font-size:.86rem;font-weight:600;white-space:nowrap;transition:all .15s;line-height:1.05}
@@ -219,11 +220,12 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#f0f4f8;height:10
 
 /* Druck */
 @media print{
+  @page{size:A4 landscape;margin:8mm}
   #toolbar,#tabs-bar,#pal-wrap,#grid-panel,#coord-bar,#ot-panel,#settings-wrap,
   #draw-toolbar-wrap,.leaflet-control-container .leaflet-top,
   .leaflet-control-container .leaflet-bottom{display:none!important}
-  #map-wrap{position:fixed!important;top:0;left:0;width:100vw!important;height:100vh!important}
-  #map{width:100vw!important;height:100vh!important}
+  #map-wrap{position:fixed!important;inset:0!important;width:auto!important;height:auto!important}
+  #map{width:100%!important;height:100%!important}
   body{margin:0!important}
   .map-textbox{background:white!important;-webkit-print-color-adjust:exact}
   .print-area-rect{display:none!important}
@@ -1981,8 +1983,11 @@ if(lageNameEl)lageNameEl.addEventListener('input',syncDocumentTitle);
 syncDocumentTitle();
 
 var printAreaLayer=null;
+var printAreaTempLayer=null;
 var printAreaMode=false;
 var printAreaFirst=null;
+var printAreaMoveHandler=null;
+var printAreaEscHandler=null;
 
 function setPrintAreaStatus(txt){
   var el=document.getElementById('tb-status');
@@ -1995,7 +2000,12 @@ function setPrintAreaMode(active){
   var btn=document.getElementById('tb-print-area');
   if(btn)btn.classList.toggle('aktiv',printAreaMode);
   if(map&&map.getContainer)map.getContainer().style.cursor=printAreaMode?'crosshair':'';
-  if(!printAreaMode)printAreaFirst=null;
+  if(!printAreaMode){
+    printAreaFirst=null;
+    if(printAreaMoveHandler){map.off('mousemove',printAreaMoveHandler);printAreaMoveHandler=null;}
+    if(printAreaEscHandler){document.removeEventListener('keydown',printAreaEscHandler);printAreaEscHandler=null;}
+    if(printAreaTempLayer){map.removeLayer(printAreaTempLayer);printAreaTempLayer=null;}
+  }
 }
 
 function clearPrintArea(){
@@ -2009,21 +2019,57 @@ function startPrintAreaSelection(){
   if(tetraPlaceMode){tetraSetMode(false);}
   setPrintAreaMode(true);
   setPrintAreaStatus('Druckbereich: 1. Ecke klicken');
-  map.once('click',function firstClick(e){
+
+  function onMove(e){
+    if(!printAreaMode||!printAreaFirst)return;
+    var b=L.latLngBounds(printAreaFirst,e.latlng);
+    if(!printAreaTempLayer){
+      printAreaTempLayer=L.rectangle(b,{color:'#e85d04',weight:1,dashArray:'5,4',fillColor:'#e85d04',fillOpacity:.03,className:'print-area-rect'}).addTo(map);
+    }else{
+      printAreaTempLayer.setBounds(b);
+    }
+  }
+
+  function onSecondClick(e2){
+    if(!printAreaMode||!printAreaFirst)return;
+    var p1=map.latLngToContainerPoint(printAreaFirst);
+    var p2=map.latLngToContainerPoint(e2.latlng);
+    var dx=Math.abs(p1.x-p2.x),dy=Math.abs(p1.y-p2.y);
+    if(dx<16||dy<16){
+      setPrintAreaStatus('Druckbereich zu klein - 2. Ecke weiter entfernt wählen');
+      return;
+    }
+
+    var b=L.latLngBounds(printAreaFirst,e2.latlng);
+    if(printAreaLayer)map.removeLayer(printAreaLayer);
+    printAreaLayer=L.rectangle(b,{color:'#e85d04',weight:2,dashArray:'8,5',fillColor:'#e85d04',fillOpacity:.06,className:'print-area-rect'}).addTo(map);
+    printAreaLayer.bindTooltip('Druckbereich (Doppelklick zum Entfernen)',{permanent:false,direction:'top'});
+    printAreaLayer.on('dblclick',function(){clearPrintArea();});
+    setPrintAreaMode(false);
+    setPrintAreaStatus('Druckbereich gesetzt');
+    map.off('click',onSecondClick);
+  }
+
+  function onFirstClick(e){
     if(!printAreaMode)return;
     printAreaFirst=e.latlng;
-    setPrintAreaStatus('Druckbereich: 2. Ecke klicken');
-    map.once('click',function secondClick(e2){
-      if(!printAreaMode)return;
-      var b=L.latLngBounds(printAreaFirst,e2.latlng);
-      if(printAreaLayer)map.removeLayer(printAreaLayer);
-      printAreaLayer=L.rectangle(b,{color:'#e85d04',weight:2,dashArray:'8,5',fillColor:'#e85d04',fillOpacity:.06,className:'print-area-rect'}).addTo(map);
-      printAreaLayer.bindTooltip('Druckbereich (Doppelklick zum Entfernen)',{permanent:false,direction:'top'});
-      printAreaLayer.on('dblclick',function(){clearPrintArea();});
+    setPrintAreaStatus('Druckbereich: 2. Ecke klicken (ESC zum Abbrechen)');
+    map.off('click',onFirstClick);
+    printAreaMoveHandler=onMove;
+    map.on('mousemove',printAreaMoveHandler);
+    map.on('click',onSecondClick);
+  }
+
+  printAreaEscHandler=function(ev){
+    if(ev.key==='Escape'&&printAreaMode){
+      map.off('click',onFirstClick);
+      map.off('click',onSecondClick);
       setPrintAreaMode(false);
-      setPrintAreaStatus('Druckbereich gesetzt');
-    });
-  });
+      setPrintAreaStatus('Druckbereich-Auswahl abgebrochen');
+    }
+  };
+  document.addEventListener('keydown',printAreaEscHandler);
+  map.on('click',onFirstClick);
 }
 
 var printAreaBtn=document.getElementById('tb-print-area');
@@ -2040,18 +2086,24 @@ document.getElementById('tb-print').onclick=function(){
   var restoreCenter=map.getCenter();
   var restoreZoom=map.getZoom();
 
+  function doPrintAndRestore(){
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        window.print();
+        setTimeout(function(){
+          map.setView(restoreCenter,restoreZoom,{animate:false});
+          btn.innerHTML='&#128438; Drucken';
+        },140);
+      });
+    });
+  }
+
   if(printAreaLayer){
     btn.textContent='⏳ Bereich...';
     map.once('moveend',function(){
-      setTimeout(function(){
-        window.print();
-        setTimeout(function(){
-          map.setView(restoreCenter,restoreZoom);
-          btn.innerHTML='&#128438; Drucken';
-        },120);
-      },260);
+      doPrintAndRestore();
     });
-    map.fitBounds(printAreaLayer.getBounds(),{padding:[10,10]});
+    map.fitBounds(printAreaLayer.getBounds(),{padding:[24,24],maxZoom:18,animate:false});
     return;
   }
 
