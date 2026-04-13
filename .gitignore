@@ -11,6 +11,8 @@ id_ed25519
 
 # Build and cache
 node_modules/
+vendor/
+composer.phar
 dist/
 build/
 .cache/
