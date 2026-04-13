@@ -22,10 +22,19 @@
 ## 4) Server Hardening
 - [ ] Directory listing disabled
 - [ ] Access to hidden files blocked
+- [ ] XML-RPC disabled if not needed
+- [ ] REST user enumeration blocked (`/wp-json/wp/v2/users`)
+- [ ] Author enumeration blocked (`/?author=<id>`)
 - [ ] Server packages and dependencies updated
 - [ ] Monitoring and log rotation active
 
-## 5) Continuous Verification
+## 5) WordPress Surface Reduction
+- [ ] WordPress generator tag removed
+- [ ] Public user archives reviewed or disabled
+- [ ] Unneeded REST namespaces/routes restricted
+- [ ] Admin access protected (MFA and IP restrictions where possible)
+
+## 6) Continuous Verification
 - [ ] Monthly TLS and header checks
 - [ ] Automated secret scanning in CI
 - [ ] Backup restore test done
