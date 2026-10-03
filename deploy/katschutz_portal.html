@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1b2a">
+<title>KatSchutz Portal — planungs-tool.de</title>
+<style>
+:root{--bg:#0d1b2a;--bg2:#162032;--bg3:#1e2d42;--accent:#e85d04;--accent2:#ff7a1a;--text:#f0f4f8;--muted:#8ba0b4;--border:rgba(232,93,4,0.2);--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,sans-serif;min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem}
+.logo{display:flex;align-items:center;gap:.7rem}
+.logo-icon{width:42px;height:42px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.logo-text{font-size:1.2rem;font-weight:700}
+.logo-sub{font-size:.75rem;color:var(--muted)}
+.header-right{display:flex;align-items:center;gap:.8rem}
+.time-display{font-size:.95rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.date-display{font-size:.78rem;color:var(--muted)}
+.status-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero{padding:3rem 1.5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0,rgba(232,93,4,.08) 0,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(232,93,4,.12);border:1px solid var(--border);border-radius:20px;padding:.3rem .9rem;font-size:.78rem;color:var(--accent);margin-bottom:1rem}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:700;line-height:1.1;margin-bottom:.8rem}
+.hero h1 em{color:var(--accent);font-style:normal}
+.hero-sub{color:var(--muted);font-size:1rem;max-width:560px;margin:0 auto 2rem}
+.alert-banner{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:.8rem 1.2rem;margin:0 1.5rem 1.5rem;display:flex;align-items:center;gap:.8rem;font-size:.88rem}
+.alert-banner.hidden{display:none}
+.alert-level{background:var(--yellow);color:#000;font-size:.72rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;white-space:nowrap}
+.section{padding:0 1.5rem 2rem;max-width:1100px;margin:0 auto}
+.section-label{font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:.4rem}
+.section-title{font-size:1.3rem;font-weight:700;margin-bottom:1.2rem}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.3rem;cursor:pointer;transition:all .2s;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(232,93,4,0) 0,rgba(232,93,4,.04) 100%);transition:opacity .2s}
+.tool-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.tool-card:hover::before{opacity:3}
+.tool-card-header{display:flex;align-items:flex-start;gap:.8rem;margin-bottom:.8rem}
+.tool-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.tool-icon.orange{background:rgba(232,93,4,.15)}
+.tool-icon.blue{background:rgba(59,130,246,.15)}
+.tool-icon.green{background:rgba(34,197,94,.15)}
+.tool-icon.yellow{background:rgba(245,158,11,.15)}
+.tool-icon.purple{background:rgba(167,139,250,.15)}
+.tool-icon.red{background:rgba(239,68,68,.15)}
+.tool-meta{flex:1}
+.tool-name{font-size:1rem;font-weight:700;margin-bottom:.15rem}
+.tool-sub{font-size:.78rem;color:var(--muted)}
+.tool-badge{font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:4px;margin-left:.4rem}
+.badge-neu{background:var(--green);color:#fff}
+.badge-beta{background:var(--yellow);color:#000}
+.badge-bald{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+.tool-desc{font-size:.85rem;color:var(--muted);line-height:1.5;margin-bottom:.8rem}
+.tool-tags{display:flex;gap:.3rem;flex-wrap:wrap}
+.tool-tag{font-size:.68rem;background:var(--bg3);color:var(--muted);padding:.15rem .5rem;border-radius:4px}
+.tool-arrow{position:absolute;bottom:1rem;right:1rem;color:var(--muted);font-size:.9rem;transition:all .2s}
+.tool-card:hover .tool-arrow{color:var(--accent);transform:translateX(3px)}
+.tool-card.coming-soon{opacity:.6;cursor:default;pointer-events:none}
+.status-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin:0 1.5rem 1.5rem;max-width:1100px;margin-left:auto;margin-right:auto;padding:0 1.5rem}
+.status-chip{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;display:flex;align-items:center;gap:.7rem}
+.status-chip-icon{font-size:1.4rem}
+.status-chip-text{font-size:.82rem;color:var(--muted);line-height:1.4}
+.status-chip-val{font-size:.95rem;font-weight:700;color:var(--text)}
+.quicklinks{display:flex;gap:.5rem;flex-wrap:wrap;padding:0 1.5rem;max-width:1100px;margin:0 auto 2rem}
+.ql{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:.4rem 1rem;border-radius:6px;text-decoration:none;font-size:.82rem;transition:all .15s;display:flex;align-items:center;gap:.4rem}
+.ql:hover{border-color:var(--accent);color:var(--text)}
+footer{border-top:1px solid var(--border);padding:1.5rem;text-align:center;font-size:.78rem;color:var(--muted)}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:600px){.hero{padding:2rem 1rem 1.5rem}.section{padding:0 1rem 1.5rem}.status-row,.quicklinks{padding:0 1rem}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      <div class="logo-text">KatSchutz Portal</div>
+      <div class="logo-sub">planungs-tool.de · DRK Emsland</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div style="text-align:right">
+      <div class="time-display" id="clock">--:--:--</div>
+      <div class="date-display" id="dateDisplay">–</div>
+    </div>
+    <div class="status-dot" title="System aktiv"></div>
+  </div>
+</header>
+<div class="alert-banner hidden" id="alertBanner">
+  <span class="alert-level" id="alertLevel">INFO</span>
+  <span id="alertText">Systemmeldung</span>
+  <button onclick="this.parentElement.classList.add('hidden')" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer">✕</button>
+</div>
+<div class="hero">
+  <div class="hero-badge">🛡️ Digitale Einsatzunterstützung</div>
+  <h1>Ihr <em>KatSchutz</em><br>Toolcenter</h1>
+  <p class="hero-sub">Alle digitalen Werkzeuge für den Katastrophenschutz — Lagekarte, Ausbildung, Gefahrstoffinformation und mehr</p>
+</div>
+<div style="max-width:1100px;margin:0 auto">
+  <div class="status-row">
+    <div class="status-chip"><div class="status-chip-icon">📡</div><div><div class="status-chip-val" id="sysStatus">Online ✓</div><div class="status-chip-text">Systemstatus</div></div></div>
+    <div class="status-chip"><div class="status-chip-icon">🗓️</div><div><div class="status-chip-val" id="dayOfWeek">–</div><div class="status-chip-text">Aktueller Tag</div></div></div>
+    <div class="status-chip"><div class="status-chip-icon">🛡️</div><div><div class="status-chip-val">DRK Emsland</div><div class="status-chip-text">KatSchutz · Registrierungsstaffel</div></div></div>
+    <div class="status-chip"><div class="status-chip-icon">📞</div><div><div class="status-chip-val">112 / 110</div><div class="status-chip-text">Notruf · Leitstelle</div></div></div>
+  </div>
+</div>
+<div class="quicklinks">
+  <a href="/lagekarte" class="ql">🗺️ Lagekarte öffnen</a>
+  <a href="https://gestis.dguv.de" target="_blank" class="ql">☣️ GESTIS Datenbank</a>
+  <a href="https://www.ericards.net" target="_blank" class="ql">🚨 ERICards</a>
+  <a href="https://warnung.bund.de" target="_blank" class="ql">⚠️ Warnung.bund.de</a>
+  <a href="tel:112" class="ql">📞 Notruf 112</a>
+  <a href="https://www.drk-emsland.de" target="_blank" class="ql">🔴 DRK Emsland</a>
+</div>
+<div class="section">
+  <div class="section-label">Tools &amp; Anwendungen</div>
+  <div class="section-title">Einsatzunterstützung</div>
+  <div class="tools-grid">
+    <a href="/lagekarte" class="tool-card">
+      <div class="tool-card-header"><div class="tool-icon orange">🗺️</div><div class="tool-meta"><div class="tool-name">Lagekarte <span class="tool-badge badge-neu">Live</span></div><div class="tool-sub">Echtzeit-Kartendarstellung</div></div></div>
+      <div class="tool-desc">Interaktive Lagekarte mit OwnTracks GPS-Tracking, POI-Verwaltung und taktischen Zeichen.</div>
+      <div class="tool-tags"><span class="tool-tag">GPS</span><span class="tool-tag">Echtzeit</span><span class="tool-tag">OwnTracks</span></div>
+      <div class="tool-arrow">→</div>
+    </a>
+    <a href="/taktische-zeichen" class="tool-card">
+      <div class="tool-card-header"><div class="tool-icon blue">⚠️</div><div class="tool-meta"><div class="tool-name">Taktische Zeichen <span class="tool-badge badge-neu">Neu</span></div><div class="tool-sub">Lernprogramm &amp; Referenz</div></div></div>
+      <div class="tool-desc">Interaktiver Trainer für taktische Zeichen. Lernkarten, Quiz-Modus und vollständige Bibliothek für DRK, Feuerwehr und THW.</div>
+      <div class="tool-tags"><span class="tool-tag">Ausbildung</span><span class="tool-tag">BOS</span><span class="tool-tag">Offline</span></div>
+      <div class="tool-arrow">→</div>
+    </a>
+    <a href="/gefahrstoffe" class="tool-card">
+      <div class="tool-card-header"><div class="tool-icon red">☣️</div><div class="tool-meta"><div class="tool-name">Gefahrstoff-Auskunft <span class="tool-badge badge-neu">Neu</span></div><div class="tool-sub">UN-Nummer · Kemler · Erstmaßnahmen</div></div></div>
+      <div class="tool-desc">Schnelle Gefahrstoff-Information im Einsatz. UN-Nummer oder Kemler-Zahl eingeben — sofort PSA, Erstmaßnahmen und GHS-Symbole.</div>
+      <div class="tool-tags"><span class="tool-tag">ABC</span><span class="tool-tag">UN-Nummern</span><span class="tool-tag">Erstmaßnahmen</span></div>
+      <div class="tool-arrow">→</div>
+    </a>
+    <div class="tool-card coming-soon">
+      <div class="tool-card-header"><div class="tool-icon green">📋</div><div class="tool-meta"><div class="tool-name">Einsatztagebuch <span class="tool-badge badge-bald">Bald</span></div><div class="tool-sub">Digitale Lagefortschreibung</div></div></div>
+      <div class="tool-desc">Zeitgestempeltes Einsatztagebuch mit mehreren Bearbeitern, automatischer Nummerierung und PDF-Export.</div>
+      <div class="tool-tags"><span class="tool-tag">Dokumentation</span><span class="tool-tag">Multi-User</span><span class="tool-tag">PDF</span></div>
+    </div>
+    <div class="tool-card coming-soon">
+      <div class="tool-card-header"><div class="tool-icon yellow">👥</div><div class="tool-meta"><div class="tool-name">Registrierungsstaffel <span class="tool-badge badge-bald">Bald</span></div><div class="tool-sub">Personenerfassung &amp; PASt</div></div></div>
+      <div class="tool-desc">Digitale Personenerfassung bei Großschadenslagen. Verwundeten-Erfassung, Angehörigenauskunft, PASt-kompatibel.</div>
+      <div class="tool-tags"><span class="tool-tag">PASt</span><span class="tool-tag">MANV</span><span class="tool-tag">Erfassung</span></div>
+    </div>
+    <div class="tool-card coming-soon">
+      <div class="tool-card-header"><div class="tool-icon purple">📊</div><div class="tool-meta"><div class="tool-name">Ressourcenverwaltung <span class="tool-badge badge-bald">Bald</span></div><div class="tool-sub">Kräfte &amp; Material</div></div></div>
+      <div class="tool-desc">Überblick über eingesetzte Kräfte, Fahrzeuge und Material. Status-Tracking und Lagebericht-Generator.</div>
+      <div class="tool-tags"><span class="tool-tag">Kräfte</span><span class="tool-tag">Fahrzeuge</span><span class="tool-tag">Status</span></div>
+    </div>
+  </div>
+</div>
+<div class="section" style="padding-top:0">
+  <div class="section-label">Externe Ressourcen</div>
+  <div class="section-title">Schnellzugriff Fachportale</div>
+  <div class="tools-grid">
+    <a href="https://warnung.bund.de" target="_blank" rel="noopener" class="tool-card">
+      <div class="tool-card-header"><div class="tool-icon yellow">📻</div><div class="tool-meta"><div class="tool-name">Warnung.bund.de</div><div class="tool-sub">Bundesamt für Bevölkerungsschutz</div></div></div>
+      <div class="tool-desc">Offizielle Warnmeldungen des BBK — Katastrophenwarnung, Unwetter, Bevölkerungsschutz-Infos.</div>
+      <div class="tool-arrow">↗</div>
+    </a>
+    <a href="https://www.bbk.bund.de" target="_blank" rel="noopener" class="tool-card">
+      <div class="tool-card-header"><div class="tool-icon blue">🏛️</div><div class="tool-meta"><div class="tool-name">BBK</div><div class="tool-sub">Bundesamt für Bevölkerungsschutz</div></div></div>
+      <div class="tool-desc">Bundesamt für Bevölkerungsschutz und Katastrophenhilfe. Publikationen, Fachinformationen, Ausbildungsunterlagen.</div>
+      <div class="tool-arrow">↗</div>
+    </a>
+    <a href="https://gestis.dguv.de" target="_blank" rel="noopener" class="tool-card">
+      <div class="tool-card-header"><div class="tool-icon red">☣️</div><div class="tool-meta"><div class="tool-name">GESTIS Stoffdatenbank</div><div class="tool-sub">DGUV / IFA</div></div></div>
+      <div class="tool-desc">Umfassende Gefahrstoffdatenbank des IFA. GHS-Informationen, Grenzwerte, Erste-Hilfe-Maßnahmen.</div>
+      <div class="tool-arrow">↗</div>
+    </a>
+  </div>
+</div>
+<footer>
+  <div style="margin-bottom:.4rem"><strong>KatSchutz Portal</strong> · planungs-tool.de · DRK-Kreisverband Emsland e.V.</div>
+  <div>Open Source · Kein Login erforderlich · <a href="/taktische-zeichen">Taktische Zeichen</a> · <a href="/gefahrstoffe">Gefahrstoffe</a> · <a href="/lagekarte">Lagekarte</a></div>
+</footer>
+<script>
+function updateClock() {
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('clock').textContent=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const days=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const months=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  document.getElementById('dateDisplay').textContent=`${days[now.getDay()]}, ${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('dayOfWeek').textContent=days[now.getDay()];
+}
+updateClock();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>
