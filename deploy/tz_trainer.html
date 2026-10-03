@@ -18,1103 +18,781 @@
   --red: #e74c3c;
   --yellow: #f39c12;
   --blue: #3498db;
+  --radius: 10px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
 header{background:var(--surface);border-bottom:2px solid var(--accent);padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
-header h1{font-size:1.2rem;color:var(--accent);font-weight:700;letter-spacing:0.5px}
-header .sub{font-size:0.75rem;color:var(--muted)}
-nav{display:flex;gap:4px;margin-left:auto}
-nav button{background:none;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;transition:all .2s}
+header h1{font-size:1.15rem;color:var(--accent);font-weight:700;letter-spacing:.5px}
+header .sub{font-size:.72rem;color:var(--muted)}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav button{background:none;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:all .2s}
 nav button.active,nav button:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 
-/* Screens */
 .screen{display:none;padding:20px;max-width:1200px;margin:0 auto}
 .screen.active{display:block}
 
+/* Loading */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999}
+#loading .spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{color:var(--muted);font-size:.9rem}
+
 /* Stats bar */
-.stats-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.stats-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center;min-width:80px}
 .stat-val{font-size:1.4rem;font-weight:700;color:var(--accent)}
-.stat-lbl{font-size:0.7rem;color:var(--muted);text-transform:uppercase}
+.stat-lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filter-bar label{font-size:.8rem;color:var(--muted)}
+.filter-bar select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:.82rem;cursor:pointer}
+
+/* Start cards */
+.mode-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px}
+.mode-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;cursor:pointer;transition:all .2s;text-align:center}
+.mode-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.mode-card .mc-icon{font-size:2.2rem;margin-bottom:12px}
+.mode-card h3{font-size:1rem;font-weight:600;margin-bottom:8px;color:var(--accent)}
+.mode-card p{font-size:.82rem;color:var(--muted);line-height:1.5}
 
 /* Flashcard */
-#lern-screen .card-wrap{display:flex;justify-content:center;padding:20px 0}
-.flashcard{width:100%;max-width:480px;min-height:300px;background:var(--surface);border:2px solid var(--border);border-radius:16px;cursor:pointer;perspective:600px;position:relative;user-select:none}
-.card-inner{width:100%;height:100%;min-height:300px;transition:transform .4s;transform-style:preserve-3d;position:relative}
+.card-wrap{display:flex;justify-content:center;padding:20px 0}
+.flashcard{width:100%;max-width:480px;min-height:320px;background:var(--surface);border:2px solid var(--border);border-radius:16px;cursor:pointer;perspective:600px;position:relative;user-select:none;transition:border-color .3s}
+.flashcard:hover{border-color:var(--accent)}
+.card-inner{width:100%;height:100%;min-height:320px;transition:transform .4s;transform-style:preserve-3d;position:relative}
 .flashcard.flipped .card-inner{transform:rotateY(180deg)}
-.card-face{position:absolute;width:100%;height:100%;min-height:300px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:12px}
+.card-face{position:absolute;width:100%;height:100%;min-height:320px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:14px;border-radius:14px}
 .card-back{transform:rotateY(180deg)}
-.card-face .tz-svg{width:140px;height:140px}
-.card-face .tz-name{font-size:1.1rem;font-weight:600;text-align:center}
-.card-face .tz-org{font-size:0.8rem;color:var(--muted)}
-.card-face .tz-hint{font-size:0.75rem;color:var(--muted);text-align:center;max-width:280px}
-.card-face .tz-kat{font-size:0.7rem;background:var(--surface2);padding:3px 10px;border-radius:20px;color:var(--accent)}
+.card-face .tz-img{width:140px;height:auto;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+.card-face .tz-name{font-size:1.1rem;font-weight:600;text-align:center;line-height:1.3}
+.card-face .tz-org{font-size:.8rem;color:var(--muted)}
+.card-face .tap-hint{font-size:.72rem;color:var(--border);position:absolute;bottom:12px}
+.rate-buttons{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.rate-btn{padding:10px 24px;border:none;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .2s}
+.rate-btn.wrong{background:#e74c3c22;border:1px solid var(--red);color:var(--red)}
+.rate-btn.unsure{background:#f39c1222;border:1px solid var(--yellow);color:var(--yellow)}
+.rate-btn.right{background:#2ecc7122;border:1px solid var(--green);color:var(--green)}
+.rate-btn:hover{opacity:.8;transform:scale(1.05)}
 
-.card-actions{display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap}
-.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all .2s}
-.btn-red{background:var(--red);color:#fff}
-.btn-yellow{background:var(--yellow);color:#fff}
-.btn-green{background:var(--green);color:#fff}
-.btn-accent{background:var(--accent);color:#fff}
-.btn-ghost{background:none;border:1px solid var(--border);color:var(--text)}
-.btn:hover{opacity:0.85;transform:translateY(-1px)}
-
-/* Progress */
-.progress-bar{height:6px;background:var(--surface2);border-radius:3px;margin-bottom:16px;overflow:hidden}
+/* Progress bar */
+.progress-bar{width:100%;height:6px;background:var(--border);border-radius:3px;margin-bottom:16px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
-.card-counter{text-align:center;font-size:0.85rem;color:var(--muted);margin-bottom:10px}
-
-/* Filter row */
-.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
-.filter-row label{font-size:0.8rem;color:var(--muted)}
-select,input[type=text]{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:0.85rem}
-select:focus,input:focus{outline:none;border-color:var(--accent)}
 
 /* Quiz */
-#quiz-screen .quiz-wrap{max-width:600px;margin:0 auto}
-.quiz-question{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:28px;text-align:center;margin-bottom:20px}
-.quiz-question .tz-svg{width:120px;height:120px;margin:0 auto 12px}
-.quiz-question .q-text{font-size:1rem;color:var(--muted);margin-bottom:8px}
-.quiz-question .q-kat{font-size:0.75rem;color:var(--accent)}
-.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.quiz-opt{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;text-align:center;font-size:0.9rem;transition:all .2s}
-.quiz-opt:hover{border-color:var(--accent);background:var(--surface2)}
-.quiz-opt.correct{border-color:var(--green);background:#1a3a2a}
-.quiz-opt.wrong{border-color:var(--red);background:#3a1a1a}
-.quiz-opt.reveal-correct{border-color:var(--green);background:#1a3a2a}
-.quiz-opt svg{display:block;margin:0 auto 6px;width:60px;height:60px}
-.quiz-result{text-align:center;padding:16px}
-.quiz-score{font-size:2rem;font-weight:700;color:var(--accent)}
+.quiz-tz{display:flex;justify-content:center;margin-bottom:20px}
+.quiz-tz img{width:180px;height:auto;filter:drop-shadow(0 2px 12px rgba(0,0,0,.5))}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:600px;margin:0 auto}
+.quiz-opt{background:var(--surface);border:2px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;font-size:.9rem;text-align:center;transition:all .2s;line-height:1.3}
+.quiz-opt:hover:not(.disabled){border-color:var(--accent);background:var(--surface2)}
+.quiz-opt.correct{border-color:var(--green);background:#2ecc7122;color:var(--green)}
+.quiz-opt.wrong{border-color:var(--red);background:#e74c3c22;color:var(--red)}
+.quiz-opt.disabled{cursor:default}
+.quiz-score{text-align:center;font-size:1rem;color:var(--muted);margin-bottom:16px}
+.quiz-next{display:block;margin:20px auto 0;padding:12px 36px;background:var(--accent);border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:600}
+.quiz-next:hover{background:var(--accent2)}
+
+/* Quiz mode 2 (Name -> Zeichen) */
+.quiz-name{font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:20px;color:var(--accent)}
+.quiz-img-options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:600px;margin:0 auto}
+.quiz-img-opt{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;display:flex;justify-content:center;transition:all .2s}
+.quiz-img-opt img{width:100px;height:auto}
+.quiz-img-opt:hover:not(.disabled){border-color:var(--accent)}
+.quiz-img-opt.correct{border-color:var(--green);background:#2ecc7122}
+.quiz-img-opt.wrong{border-color:var(--red);background:#e74c3c22}
 
 /* Bibliothek */
-#bib-screen .bib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
-.bib-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s}
-.bib-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.bib-card svg{width:64px;height:64px;margin-bottom:6px}
-.bib-card .bc-name{font-size:0.7rem;color:var(--text);line-height:1.3}
-.bib-card .bc-org{font-size:0.65rem;color:var(--muted)}
-.bib-card.learned{border-color:var(--green)}
+.bib-search{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.95rem;margin-bottom:12px}
+.bib-search:focus{outline:none;border-color:var(--accent)}
+.bib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.bib-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s}
+.bib-item:hover{border-color:var(--accent);transform:translateY(-1px)}
+.bib-item img{width:80px;height:auto;margin-bottom:8px}
+.bib-item .bi-name{font-size:.7rem;color:var(--muted);line-height:1.3}
+.bib-count{font-size:.82rem;color:var(--muted);margin-bottom:12px}
 
-/* Mode selector */
-.mode-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:700px;margin:30px auto}
-.mode-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s}
-.mode-card:hover{border-color:var(--accent);transform:translateY(-3px)}
-.mode-card .mc-icon{font-size:2.5rem;margin-bottom:10px}
-.mode-card h3{font-size:1rem;color:var(--accent);margin-bottom:6px}
-.mode-card p{font-size:0.8rem;color:var(--muted)}
+/* Level dots */
+.level-dots{display:flex;gap:3px;justify-content:center;margin-top:6px}
+.level-dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.level-dot.filled{background:var(--accent)}
 
-.section-title{font-size:1.1rem;font-weight:600;color:var(--accent);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
-.tag{display:inline-block;background:var(--surface2);color:var(--muted);padding:2px 8px;border-radius:20px;font-size:0.7rem;margin:2px}
-.tag.active{background:var(--accent);color:#fff}
+/* Detail modal */
+.modal-overlay{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:360px;width:100%;text-align:center}
+.modal img{width:160px;height:auto;margin-bottom:16px}
+.modal h3{font-size:1.1rem;font-weight:600;margin-bottom:6px}
+.modal p{font-size:.82rem;color:var(--muted);margin-bottom:4px}
+.modal .close-btn{margin-top:16px;padding:8px 24px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;cursor:pointer}
 
-.empty{text-align:center;padding:60px;color:var(--muted)}
-.empty-icon{font-size:3rem;margin-bottom:12px}
+/* Section heading */
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.section-head h2{font-size:1.1rem;font-weight:600}
+.badge{background:var(--accent);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:12px}
 
-/* Org legend */
-.org-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.org-badge{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.75rem;cursor:pointer;transition:all .2s}
-.org-badge:hover,.org-badge.active{border-color:var(--accent);color:var(--accent)}
-.org-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+button.back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;margin-bottom:16px}
+button.back-btn:hover{border-color:var(--accent);color:var(--accent)}
 
-@media(max-width:600px){
-  .quiz-options{grid-template-columns:1fr}
-  .mode-cards{grid-template-columns:1fr 1fr}
-  nav button span{display:none}
+@media(max-width:480px){
+  .quiz-options,.quiz-img-options{grid-template-columns:1fr}
+  .bib-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
 }
 </style>
 </head>
 <body>
 
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Lade Taktische Zeichen Bibliothek...</p>
+</div>
+
 <header>
   <div>
-    <h1>[TZ] Taktische Zeichen Trainer</h1>
-    <div class="sub">1528 Zeichen nach DV 102 &middot; BOS Deutschland</div>
+    <h1>Taktische Zeichen Trainer</h1>
+    <div class="sub">DV 102 - Alle Zeichen nach Feuerwehr-Dienstvorschrift</div>
   </div>
   <nav>
-    <button onclick="showScreen('start')" id="nav-start" class="active"> <span>Start</span></button>
-    <button onclick="showScreen('lern')" id="nav-lern"> <span>Lernen</span></button>
-    <button onclick="showScreen('quiz')" id="nav-quiz"> <span>Quiz</span></button>
-    <button onclick="showScreen('bib')" id="nav-bib"> <span>Bibliothek</span></button>
+    <button onclick="showScreen('start')" id="nav-start" class="active">Start</button>
+    <button onclick="showScreen('lern')" id="nav-lern">Lernen</button>
+    <button onclick="showScreen('quiz')" id="nav-quiz">Quiz</button>
+    <button onclick="showScreen('bib')" id="nav-bib">Bibliothek</button>
   </nav>
 </header>
 
 <!-- START -->
 <div id="start-screen" class="screen active">
-  <div style="max-width:700px;margin:0 auto">
-    <div class="stats-bar">
-      <div class="stat"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Zeichen gesamt</div></div>
-      <div class="stat"><div class="stat-val" id="stat-learned">0</div><div class="stat-lbl">Gelernt</div></div>
-      <div class="stat"><div class="stat-val" id="stat-pct">0%</div><div class="stat-lbl">Fortschritt</div></div>
-      <div class="stat"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
-      <div class="stat"><div class="stat-val" id="stat-hs">0</div><div class="stat-lbl">Highscore</div></div>
+  <div class="stats-bar" id="start-stats">
+    <div class="stat"><div class="stat-val" id="stat-total">-</div><div class="stat-lbl">Zeichen gesamt</div></div>
+    <div class="stat"><div class="stat-val" id="stat-gelernt">0</div><div class="stat-lbl">Gelernt</div></div>
+    <div class="stat"><div class="stat-val" id="stat-faellig">0</div><div class="stat-lbl">Faellig heute</div></div>
+    <div class="stat"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak (Tage)</div></div>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="startLernen()">
+      <div class="mc-icon">&#x1F4DA;</div>
+      <h3>Spaced-Repetition</h3>
+      <p>Lerne effizient mit faelligkeitsbasiertem Wiederholen. Neue Zeichen + faellige Karten.</p>
     </div>
-
-    <div class="mode-cards">
-      <div class="mode-card" onclick="startLernen()">
-        <div class="mc-icon"></div>
-        <h3>Karteikarten</h3>
-        <p>Spaced-Repetition Lernmodus - Zeichen nach Haeufigkeit des Vergessens wiederholen</p>
-      </div>
-      <div class="mode-card" onclick="startQuiz('zeichen-name')">
-        <div class="mc-icon">[TZ]</div>
-        <h3>Quiz: Zeichen-&gt;Name</h3>
-        <p>Taktisches Zeichen sehen, richtigen Namen auswaehlen</p>
-      </div>
-      <div class="mode-card" onclick="startQuiz('name-zeichen')">
-        <div class="mc-icon"></div>
-        <h3>Quiz: Name-&gt;Zeichen</h3>
-        <p>Namen lesen, richtiges Zeichen erkennen</p>
-      </div>
-      <div class="mode-card" onclick="showScreen('bib')">
-        <div class="mc-icon"></div>
-        <h3>Bibliothek</h3>
-        <p>Alle 1528 Zeichen nach Kategorie und Organisation durchsuchen</p>
-      </div>
+    <div class="mode-card" onclick="startQuiz('tz2name')">
+      <div class="mc-icon">&#x1F3AF;</div>
+      <h3>Quiz: Zeichen erkennnen</h3>
+      <p>Zeichen sehen - richtigen Namen auswaehlen. 4 Antwortmoeglichkeiten.</p>
     </div>
+    <div class="mode-card" onclick="startQuiz('name2tz')">
+      <div class="mc-icon">&#x270F;</div>
+      <h3>Quiz: Zeichen zuordnen</h3>
+      <p>Name lesen - richtiges Zeichen aus 4 Bildern auswaehlen.</p>
+    </div>
+    <div class="mode-card" onclick="showScreen('bib')">
+      <div class="mc-icon">&#x1F4D6;</div>
+      <h3>Bibliothek</h3>
+      <p>Alle Zeichen durchsuchen und filtern. Zum Nachschlagen und Erkunden.</p>
+    </div>
+  </div>
 
-    <div style="margin-top:20px">
-      <div class="section-title">Filter fuer Lernmodus</div>
-      <div class="filter-row">
-        <label>Organisation:</label>
-        <select id="start-org" onchange="updateStartFilter()">
-          <option value="">Alle Organisationen</option>
-        </select>
-        <label>Kategorie:</label>
-        <select id="start-kat" onchange="updateStartFilter()">
-          <option value="">Alle Kategorien</option>
-        </select>
-        <span id="start-count" style="color:var(--muted);font-size:0.85rem"></span>
-      </div>
-      <button class="btn btn-accent" onclick="startLernen()" style="margin-top:8px">Lernen starten -&gt;</button>
-      <button class="btn btn-ghost" onclick="resetProgress()" style="margin-top:8px;margin-left:8px">Fortschritt zuruecksetzen</button>
+  <div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px">
+    <div style="font-size:.85rem;font-weight:600;margin-bottom:12px;color:var(--accent)">Lernfilter</div>
+    <div class="filter-bar">
+      <label>Organisation:</label>
+      <select id="filter-org" onchange="saveFilters()">
+        <option value="">Alle</option>
+      </select>
+      <label>Grundzeichen:</label>
+      <select id="filter-gz" onchange="saveFilters()">
+        <option value="">Alle</option>
+      </select>
+      <label>Fachaufgabe:</label>
+      <select id="filter-fa" onchange="saveFilters()">
+        <option value="">Alle</option>
+      </select>
     </div>
   </div>
 </div>
 
 <!-- LERNEN -->
 <div id="lern-screen" class="screen">
-  <div style="max-width:540px;margin:0 auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <button class="btn btn-ghost" onclick="showScreen('start')" style="padding:6px 12px;font-size:0.8rem">&lt;- Zurueck</button>
-      <span id="lern-mode-label" style="font-size:0.8rem;color:var(--muted)"></span>
-      <button class="btn btn-ghost" onclick="shuffleQueue()" style="padding:6px 12px;font-size:0.8rem"> Mischen</button>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" id="lern-progress" style="width:0%"></div></div>
-    <div class="card-counter" id="lern-counter">0 / 0</div>
-
-    <div class="card-wrap">
-      <div class="flashcard" id="flashcard" onclick="flipCard()">
-        <div class="card-inner">
-          <div class="card-face card-front" id="card-front">
-            <svg class="tz-svg" id="cf-svg" viewBox="0 0 100 100"></svg>
-            <div class="tz-kat" id="cf-kat"></div>
-            <div style="color:var(--muted);font-size:0.8rem;margin-top:8px">Antippen zum Aufdecken</div>
-          </div>
-          <div class="card-face card-back" id="card-back">
-            <svg class="tz-svg" id="cb-svg" viewBox="0 0 100 100"></svg>
-            <div class="tz-name" id="cb-name"></div>
-            <div class="tz-org" id="cb-org"></div>
-            <div class="tz-hint" id="cb-hint"></div>
-          </div>
+  <button class="back-btn" onclick="showScreen('start')">&#x2190; Zurueck</button>
+  <div class="section-head">
+    <h2>Spaced-Repetition Lernen</h2>
+    <span class="badge" id="lern-remaining">0 Karten</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="lern-progress" style="width:0%"></div></div>
+  <div class="card-wrap">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img class="tz-img" id="card-img-front" src="" alt="Taktisches Zeichen">
+          <div class="tz-name" id="card-hint"></div>
+          <div class="tap-hint">Tippen zum Umdrehen</div>
+        </div>
+        <div class="card-face card-back">
+          <img class="tz-img" id="card-img-back" src="" alt="Taktisches Zeichen">
+          <div class="tz-name" id="card-name"></div>
+          <div class="tz-org" id="card-org"></div>
+          <div class="tz-org" id="card-fa"></div>
+          <div class="level-dots" id="card-level"></div>
         </div>
       </div>
     </div>
-
-    <div class="card-actions" id="card-actions" style="display:none">
-      <button class="btn btn-red" onclick="rateCard(1)"> Nochmal</button>
-      <button class="btn btn-yellow" onclick="rateCard(2)"> Unsicher</button>
-      <button class="btn btn-green" onclick="rateCard(3)"> Gewusst!</button>
+  </div>
+  <div id="rate-area" style="display:none">
+    <div class="rate-buttons">
+      <button class="rate-btn wrong" onclick="rateCard(1)">Falsch</button>
+      <button class="rate-btn unsure" onclick="rateCard(2)">Unsicher</button>
+      <button class="rate-btn right" onclick="rateCard(3)">Richtig!</button>
     </div>
-    <div id="lern-done" style="display:none;text-align:center;padding:40px">
-      <div style="font-size:2rem;margin-bottom:12px"></div>
-      <div style="font-size:1.2rem;font-weight:600;color:var(--accent)">Runde abgeschlossen!</div>
-      <div style="color:var(--muted);margin:8px 0" id="lern-done-stats"></div>
-      <button class="btn btn-accent" onclick="nextRound()" style="margin-top:16px">Naechste Runde</button>
-      <button class="btn btn-ghost" onclick="showScreen('start')" style="margin-top:16px;margin-left:8px">Zurueck</button>
-    </div>
+  </div>
+  <div id="lern-done" style="display:none;text-align:center;padding:40px">
+    <div style="font-size:3rem;margin-bottom:16px">&#x2705;</div>
+    <h3 style="font-size:1.2rem;margin-bottom:8px">Session abgeschlossen!</h3>
+    <p style="color:var(--muted);margin-bottom:20px">Alle faelligen Karten fuer heute gelernt.</p>
+    <button class="quiz-next" onclick="showScreen('start')">Zur Uebersicht</button>
   </div>
 </div>
 
 <!-- QUIZ -->
 <div id="quiz-screen" class="screen">
-  <div class="quiz-wrap">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <button class="btn btn-ghost" onclick="showScreen('start')" style="padding:6px 12px;font-size:0.8rem">&lt;- Zurueck</button>
-      <div style="font-size:0.85rem;color:var(--muted)">
-        <span id="quiz-mode-label"></span> &middot;
-        Frage <span id="quiz-num">1</span>/<span id="quiz-total">10</span>
-      </div>
-      <div style="font-size:0.85rem">Punkte: <span id="quiz-score" style="color:var(--accent);font-weight:700">0</span></div>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
-
-    <div class="quiz-question" id="quiz-question">
-      <svg id="quiz-svg" class="tz-svg" viewBox="0 0 100 100"></svg>
-      <div class="q-text" id="quiz-text"></div>
-      <div class="q-kat" id="quiz-kat"></div>
-    </div>
-    <div class="quiz-options" id="quiz-options"></div>
-
-    <div id="quiz-done" style="display:none" class="quiz-result">
-      <div style="font-size:2rem;margin-bottom:8px"></div>
-      <div class="quiz-score" id="quiz-final-score"></div>
-      <div style="color:var(--muted);margin-top:8px" id="quiz-final-text"></div>
-      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-accent" onclick="restartQuiz()">Nochmal</button>
-        <button class="btn btn-ghost" onclick="showScreen('start')">Zurueck</button>
-      </div>
+  <button class="back-btn" onclick="showScreen('start')">&#x2190; Zurueck</button>
+  <div class="section-head">
+    <h2 id="quiz-title">Quiz</h2>
+    <span class="badge" id="quiz-score-badge">0/0</span>
+  </div>
+  <div id="quiz-tz2name">
+    <div class="quiz-tz"><img id="qtz-img" src="" alt="Zeichen" style="width:180px;height:auto"></div>
+    <div class="quiz-options" id="qtz-opts"></div>
+  </div>
+  <div id="quiz-name2tz" style="display:none">
+    <div class="quiz-name" id="qname-text"></div>
+    <div class="quiz-img-options" id="qname-opts"></div>
+  </div>
+  <button class="quiz-next" id="quiz-next-btn" onclick="nextQuizQuestion()" style="display:none">Naechste Frage</button>
+  <div id="quiz-done" style="display:none;text-align:center;padding:40px">
+    <div style="font-size:3rem;margin-bottom:16px">&#x1F3C6;</div>
+    <h3 style="font-size:1.2rem;margin-bottom:8px" id="quiz-final-score"></h3>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+      <button class="quiz-next" onclick="startQuiz(currentQuizMode)">Nochmal</button>
+      <button class="quiz-next" style="background:var(--surface2);border:1px solid var(--border)" onclick="showScreen('start')">Zur Uebersicht</button>
     </div>
   </div>
 </div>
 
 <!-- BIBLIOTHEK -->
 <div id="bib-screen" class="screen">
-  <div class="filter-row" style="margin-bottom:16px">
-    <input type="text" id="bib-search" placeholder=" Suche..." oninput="renderBib()" style="flex:1;max-width:300px">
-    <select id="bib-org" onchange="renderBib()"><option value="">Alle Orgs</option></select>
-    <select id="bib-kat" onchange="renderBib()"><option value="">Alle Kat.</option></select>
-    <span id="bib-count" style="color:var(--muted);font-size:0.85rem"></span>
+  <div class="section-head">
+    <h2>Bibliothek</h2>
+    <span class="badge" id="bib-count-badge">-</span>
   </div>
+  <input class="bib-search" id="bib-search" placeholder="Suchen... (z.B. Feuerwehr, Brandbekaempfung)" oninput="renderBib()">
+  <div class="filter-bar">
+    <label>Organisation:</label>
+    <select id="bib-org" onchange="renderBib()"><option value="">Alle</option></select>
+    <label>Grundzeichen:</label>
+    <select id="bib-gz" onchange="renderBib()"><option value="">Alle</option></select>
+    <label>Fachaufgabe:</label>
+    <select id="bib-fa" onchange="renderBib()"><option value="">Alle</option></select>
+  </div>
+  <div class="bib-count" id="bib-count"></div>
   <div class="bib-grid" id="bib-grid"></div>
 </div>
 
-<script>
-// ===== TAKTISCHE ZEICHEN DATENBANK =====
-// DV 102 - Vollstaendige Bibliothek nach BOS-Standard
-// SVG-Generierung: Grundzeichen + Organisations-Farbe + Fachaufgabe/Symbol
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <img id="modal-img" src="" alt="">
+    <h3 id="modal-name"></h3>
+    <p id="modal-org"></p>
+    <p id="modal-fa"></p>
+    <p id="modal-gz"></p>
+    <div class="level-dots" id="modal-level" style="justify-content:center"></div>
+    <button class="close-btn" onclick="closeModal()">Schliessen</button>
+  </div>
+</div>
 
-const ORGS = [
-  { id:'FW',  name:'Feuerwehr',         farbe:'#e60000', rand:'#cc0000' },
-  { id:'THW', name:'THW',               farbe:'#003399', rand:'#002277' },
-  { id:'DRK', name:'DRK / Sanitaetsd.', farbe:'#cc0000', rand:'#aa0000' },
-  { id:'POL', name:'Polizei',           farbe:'#006600', rand:'#005500' },
-  { id:'BW',  name:'Bundeswehr',        farbe:'#4a5e2a', rand:'#3a4e1a' },
-  { id:'KAT', name:'Katastrophenschutz',farbe:'#ff6600', rand:'#cc5500' },
-  { id:'HiO', name:'Hilfsorg. allg.',   farbe:'#0077cc', rand:'#0055aa' },
-  { id:'MHD', name:'Malteser / JUH',    farbe:'#333399', rand:'#222277' },
-];
+<script type="module">
+// ============================================================
+// IMPORT from taktische-zeichen library (jsDelivr CDN)
+// ============================================================
+let erzeuge, grundzeichenList, fachaufgabenList, organisationenList, einheitenList;
 
-const GRUNDZEICHEN = [
-  // Einheiten (quadratisch)
-  { id:'trupp',     name:'Trupp',              shape:'quad',  size:'S'  },
-  { id:'staffel',   name:'Staffel',            shape:'quad',  size:'M'  },
-  { id:'gruppe',    name:'Gruppe',             shape:'quad',  size:'L'  },
-  { id:'zug',       name:'Zug',               shape:'quad',  size:'XL' },
-  { id:'abteilung', name:'Abteilung',          shape:'quad',  size:'XXL'},
-  { id:'verband',   name:'Verband',            shape:'quad',  size:'V'  },
-  // Fuehrungseinheiten (punkt oben)
-  { id:'fkw',       name:'Fuehrungskraftwagen', shape:'fkw',   size:'M'  },
-  { id:'fst',       name:'Fuehrungsstelle',     shape:'fst',   size:'M'  },
-  { id:'iuk',       name:'IuK',               shape:'iuk',   size:'S'  },
-  // Fahrzeuge
-  { id:'kfz',       name:'Kraftfahrzeug',      shape:'kfz',   size:'M'  },
-  { id:'lkw',       name:'LKW',               shape:'lkw',   size:'M'  },
-  { id:'anh',       name:'Anhaenger',           shape:'anh',   size:'S'  },
-  { id:'boot',      name:'Boot',              shape:'boot',  size:'M'  },
-  { id:'hub',       name:'Hubschrauber',       shape:'hub',   size:'M'  },
-  // Gebaeude / Einrichtungen
-  { id:'ort',       name:'Ortschaft',          shape:'kreis', size:'L'  },
-  { id:'stelle',    name:'Stelle',             shape:'dreieck', size:'M'},
-  { id:'platz',     name:'Bereitstellungsraum',shape:'raute',  size:'L' },
-  // Personen
-  { id:'person',    name:'Person',             shape:'person', size:'S' },
-  { id:'verletz',   name:'Verletzter',         shape:'person_v',size:'S'},
-  { id:'toter',     name:'Toter',              shape:'person_t',size:'S'},
-  // Gefahren
-  { id:'gefahr',    name:'Gefahr allg.',       shape:'gefahr', size:'M' },
-  { id:'feuer',     name:'Feuer/Brand',        shape:'feuer',  size:'M' },
-  { id:'ex',        name:'Explosion',          shape:'ex',     size:'M' },
-  { id:'cbrn_c',    name:'CBRN-C (chem.)',     shape:'cbrn',   size:'M', sub:'C'},
-  { id:'cbrn_b',    name:'CBRN-B (bio.)',      shape:'cbrn',   size:'M', sub:'B'},
-  { id:'cbrn_r',    name:'CBRN-R (rad.)',      shape:'cbrn',   size:'M', sub:'R'},
-  { id:'cbrn_n',    name:'CBRN-N (nukl.)',     shape:'cbrn',   size:'M', sub:'N'},
-  { id:'ueberschwemm', name:'Ueberschwemmung',  shape:'wasser', size:'M' },
-  { id:'einsturz',  name:'Einsturz',           shape:'einsturz',size:'M'},
-  { id:'strom',     name:'Gefahr elektr. Strom',shape:'strom', size:'M' },
-  { id:'gas',       name:'Gasgefahr',          shape:'gas',    size:'M' },
-  // Massnahmen
-  { id:'retten',    name:'Rettung',            shape:'pfeil',  size:'M' },
-  { id:'absperren', name:'Absperrung',         shape:'barrier',size:'M' },
-  { id:'transport', name:'Krankentransport',   shape:'ktw',    size:'M' },
-  { id:'bereitstell',name:'Bereitstellung',    shape:'raute',  size:'S' },
-  { id:'einweis',   name:'Einweisung',         shape:'einweis',size:'S' },
-];
+try {
+  const mod = await import('https://cdn.jsdelivr.net/npm/@taktische-zeichen/core@+esm');
+  erzeuge = mod.erzeugeTaktischesZeichen;
+  grundzeichenList = mod.grundzeichen;
+  fachaufgabenList = mod.fachaufgaben;
+  organisationenList = mod.organisationen;
+  einheitenList = mod.einheiten;
+} catch(e) {
+  document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">Fehler beim Laden der Bibliothek:<br>' + e.message + '<br><br>Bitte Seite neu laden oder Internetverbindung pruefen.</p>';
+  throw e;
+}
 
-const FACHAUFGABEN = [
-  { id:'brand',   name:'Brandbekaempfung',    sym:'' },
-  { id:'techrh',  name:'Techn. Hilfeleistung',sym:''},
-  { id:'retten',  name:'Retten u. Bergen',   sym:'' },
-  { id:'abc',     name:'ABC-Schutz',         sym:'' },
-  { id:'san',     name:'Sanitaetsdienst',     sym:'' },
-  { id:'betreuung',name:'Betreuung',         sym:'' },
-  { id:'vers',    name:'Versorgung',         sym:'' },
-  { id:'fueh',    name:'Fuehrung/KdoStab',    sym:'' },
-  { id:'iuk',     name:'Informationstech.',  sym:'' },
-  { id:'infra',   name:'Infrastruktur',      sym:'' },
-  { id:'wasser',  name:'Wasserrettung',      sym:'' },
-  { id:'hoehen',  name:'Hoehenrettung',       sym:''},
-  { id:'brandschutz',name:'Vorb. Brandschutz',sym:''},
-  { id:'oepnv',   name:'OEPNV / Verkehr',    sym:'' },
-  { id:'umwelt',  name:'Umweltschutz',       sym:'' },
-  { id:'spreng',  name:'Sprengmittelraeumung',sym:'' },
-  { id:'foers',   name:'Forstwirtschaft',    sym:'' },
-  { id:'atem',    name:'Atemschutz',         sym:'' },
-  { id:'sonder',  name:'Sonderaufgaben',     sym:'*' },
-  { id:'manv',    name:'MANV-Versorgung',    sym:'' },
-  { id:'zug_e',   name:'Zugtrupp Einsatz',   sym:'' },
-  { id:'log',     name:'Logistik',           sym:'' },
-];
+// ============================================================
+// BUILD DATABASE
+// ============================================================
+const DB = [];
 
-// ===== SVG-RENDERER =====
-function renderTZ(gz, org, fach, size=80) {
-  const o = ORGS.find(x=>x.id===org) || ORGS[0];
-  const f = o.farbe;
-  const r = o.rand;
-  const s = size;
-  const h = s; const w = s;
+function makeSvgUrl(params) {
+  try {
+    const tz = erzeuge(params);
+    const svg = tz.toString();
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  } catch(e) {
+    return null;
+  }
+}
 
-  let inner = '';
-  const stroke = r;
-  const fill = f + '22';
+function buildName(gz, org, fa, einheit) {
+  let parts = [];
+  if (fa) parts.push(fa.label);
+  if (gz && gz.id !== 'ohne') parts.push(gz.label);
+  if (org) parts.push(org.label);
+  if (einheit) parts.push(einheit.label);
+  return parts.join(' - ') || 'Unbekannt';
+}
 
-  switch(gz.shape) {
-    case 'quad': {
-      const pad = gz.size==='S'?18:gz.size==='M'?14:gz.size==='L'?10:gz.size==='XL'?6:gz.size==='XXL'?3:8;
-      inner = `<rect x="${pad}" y="${pad}" width="${w-2*pad}" height="${h-2*pad}"
-        fill="${fill}" stroke="${stroke}" stroke-width="3" rx="2"/>`;
-      if(fach) inner += `<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="18" fill="${stroke}">${fach.sym||'?'}</text>`;
-      break;
-    }
-    case 'fkw': {
-      inner = `<rect x="14" y="18" width="72" height="52" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="2"/>
-        <circle cx="${w/2}" cy="10" r="6" fill="${stroke}"/>
-        ${fach?`<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="16" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'fst': {
-      inner = `<rect x="10" y="14" width="80" height="60" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="2"/>
-        <line x1="${w/2}" y1="0" x2="${w/2}" y2="14" stroke="${stroke}" stroke-width="2"/>
-        ${fach?`<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="16" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'kfz': {
-      inner = `<rect x="10" y="25" width="72" height="40" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="4"/>
-        <rect x="10" y="65" width="18" height="10" fill="${stroke}" rx="5"/>
-        <rect x="64" y="65" width="18" height="10" fill="${stroke}" rx="5"/>
-        ${fach?`<text x="${w/2}" y="${h/2+3}" text-anchor="middle" font-size="13" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'lkw': {
-      inner = `<rect x="5" y="20" width="90" height="50" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="4"/>
-        <rect x="5" y="25" width="25" height="30" fill="${stroke+'44'}" stroke="${stroke}" stroke-width="2" rx="2"/>
-        <circle cx="20" cy="72" r="7" fill="${stroke}"/>
-        <circle cx="75" cy="72" r="7" fill="${stroke}"/>
-        ${fach?`<text x="65" y="${h/2+5}" text-anchor="middle" font-size="12" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'anh': {
-      inner = `<rect x="15" y="25" width="60" height="42" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="3"/>
-        <circle cx="30" cy="69" r="7" fill="${stroke}"/>
-        <circle cx="70" cy="69" r="7" fill="${stroke}"/>
-        <line x1="15" y1="46" x2="0" y2="46" stroke="${stroke}" stroke-width="2"/>`;      break;
-    }
-    case 'boot': {
-      inner = `<path d="M10,50 Q50,20 90,50 L85,70 Q50,80 15,70 Z" fill="${fill}" stroke="${stroke}" stroke-width="3"/>
-        ${fach?`<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="14" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'hub': {
-      inner = `<ellipse cx="50" cy="55" rx="25" ry="15" fill="${fill}" stroke="${stroke}" stroke-width="3"/>
-        <line x1="0" y1="40" x2="100" y2="40" stroke="${stroke}" stroke-width="4"/>
-        <line x1="50" y1="40" x2="50" y2="55" stroke="${stroke}" stroke-width="2"/>
-        <line x1="45" y1="75" x2="55" y2="75" stroke="${stroke}" stroke-width="2"/>
-        <line x1="50" y1="75" x2="50" y2="85" stroke="${stroke}" stroke-width="2"/>`;      break;
-    }
-    case 'kreis': {
-      inner = `<circle cx="${w/2}" cy="${h/2}" r="35" fill="${fill}" stroke="${stroke}" stroke-width="3"/>
-        ${fach?`<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="18" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'dreieck': {
-      inner = `<polygon points="${w/2},10 ${w-10},${h-10} 10,${h-10}" fill="${fill}" stroke="${stroke}" stroke-width="3"/>
-        ${fach?`<text x="${w/2}" y="${h/2+8}" text-anchor="middle" font-size="16" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'raute': {
-      inner = `<polygon points="${w/2},8 ${w-8},${h/2} ${w/2},${h-8} 8,${h/2}" fill="${fill}" stroke="${stroke}" stroke-width="3"/>
-        ${fach?`<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="15" fill="${stroke}">${fach.sym}</text>`:''}`;      break;
-    }
-    case 'person': {
-      inner = `<circle cx="${w/2}" cy="22" r="12" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
-        <path d="M28,38 Q50,30 72,38 L68,72 H32 Z" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`;      break;
-    }
-    case 'person_v': {
-      inner = `<circle cx="${w/2}" cy="22" r="12" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
-        <path d="M28,38 Q50,30 72,38 L68,72 H32 Z" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
-        <line x1="20" y1="80" x2="80" y2="80" stroke="${stroke}" stroke-width="3"/>`;      break;
-    }
-    case 'person_t': {
-      inner = `<circle cx="${w/2}" cy="22" r="12" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
-        <path d="M28,38 Q50,30 72,38 L68,72 H32 Z" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>
-        <line x1="20" y1="80" x2="80" y2="80" stroke="red" stroke-width="3"/>
-        <line x1="5" y1="5" x2="25" y2="25" stroke="red" stroke-width="3"/>`;      break;
-    }
-    case 'gefahr': {
-      inner = `<polygon points="${w/2},5 ${w-5},${h-5} 5,${h-5}" fill="#ff000022" stroke="#ff0000" stroke-width="3"/>
-        <text x="${w/2}" y="${h-16}" text-anchor="middle" font-size="28" fill="#ff0000">!</text>`;      break;
-    }
-    case 'feuer': {
-      inner = `<path d="M50,85 C20,75 15,55 30,40 C25,55 35,60 40,50 C30,30 50,10 50,10 C50,30 60,35 65,25 C75,40 80,60 70,75 C75,55 65,45 60,55 C75,65 70,85 50,85Z" fill="#ff440088" stroke="#ff2200" stroke-width="2"/>`;      break;
-    }
-    case 'ex': {
-      inner = `<polygon points="${w/2},0 60,35 100,30 75,60 90,95 50,75 10,95 25,60 0,30 40,35" fill="#ffaa0044" stroke="#ff8800" stroke-width="2.5"/>
-        <text x="${w/2}" y="${h/2+8}" text-anchor="middle" font-size="20" fill="#ff8800">EX</text>`;      break;
-    }
-    case 'cbrn': {
-      const colors = {C:'#ffff00',B:'#00aa00',R:'#ff6600',N:'#ff0000'};
-      const col = colors[gz.sub]||'#888';
-      inner = `<circle cx="${w/2}" cy="${h/2}" r="35" fill="${col}22" stroke="${col}" stroke-width="3"/>
-        <text x="${w/2}" y="${h/2+8}" text-anchor="middle" font-size="26" font-weight="bold" fill="${col}">${gz.sub}</text>`;      break;
-    }
-    case 'wasser': {
-      inner = `<path d="M10,60 Q25,40 40,55 Q55,40 70,55 Q85,40 90,55 L90,80 Q75,80 60,80 Q45,80 30,80 Q15,80 10,80 Z" fill="#0066ff44" stroke="#0055dd" stroke-width="2.5"/>
-        <path d="M10,45 Q25,25 40,40 Q55,25 70,40 Q85,25 90,40" fill="none" stroke="#0055dd" stroke-width="2"/>`;      break;
-    }
-    case 'einsturz': {
-      inner = `<polygon points="5,85 35,85 20,60 50,85 75,85 60,55 95,85 95,90 5,90" fill="#88888844" stroke="#666" stroke-width="2"/>
-        <polygon points="30,10 50,45 70,10" fill="#88888844" stroke="#666" stroke-width="2"/>
-        <line x1="30" y1="10" x2="20" y2="60" stroke="#666" stroke-width="2" stroke-dasharray="4"/>`;      break;
-    }
-    case 'strom': {
-      inner = `<polygon points="${w/2},5 ${w-5},${h-5} 5,${h-5}" fill="#ffff0033" stroke="#ffcc00" stroke-width="3"/>
-        <text x="${w/2}" y="${h-18}" text-anchor="middle" font-size="30" fill="#ffcc00">!</text>`;      break;
-    }
-    case 'gas': {
-      inner = `<circle cx="${w/2}" cy="${h/2}" r="35" fill="#ffff0022" stroke="#ddbb00" stroke-width="3"/>
-        <text x="${w/2}" y="${h/2+8}" text-anchor="middle" font-size="20" font-weight="bold" fill="#ddbb00">GAS</text>`;      break;
-    }
-    case 'pfeil': {
-      inner = `<polygon points="15,40 65,40 65,20 90,50 65,80 65,60 15,60" fill="${fill}" stroke="${stroke}" stroke-width="3"/>`;      break;
-    }
-    case 'barrier': {
-      inner = `<line x1="5" y1="50" x2="95" y2="50" stroke="${stroke}" stroke-width="6"/>
-        <line x1="15" y1="35" x2="5" y2="65" stroke="${stroke}" stroke-width="4"/>
-        <line x1="45" y1="35" x2="35" y2="65" stroke="${stroke}" stroke-width="4"/>
-        <line x1="75" y1="35" x2="65" y2="65" stroke="${stroke}" stroke-width="4"/>`;      break;
-    }
-    case 'ktw': {
-      inner = `<rect x="8" y="25" width="75" height="42" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="5"/>
-        <line x1="28" y1="38" x2="28" y2="52" stroke="red" stroke-width="3"/>
-        <line x1="22" y1="45" x2="34" y2="45" stroke="red" stroke-width="3"/>
-        <circle cx="22" cy="70" r="8" fill="${stroke}"/>
-        <circle cx="68" cy="70" r="8" fill="${stroke}"/>
-        <rect x="72" y="30" width="20" height="28" fill="${fill}" stroke="${stroke}" stroke-width="2" rx="3"/>`;      break;
-    }
-    case 'einweis': {
-      inner = `<line x1="50" y1="85" x2="50" y2="15" stroke="${stroke}" stroke-width="3"/>
-        <polygon points="50,8 40,25 60,25" fill="${stroke}"/>
-        <line x1="20" y1="50" x2="50" y2="50" stroke="${stroke}" stroke-width="2"/>
-        <line x1="50" y1="50" x2="80" y2="50" stroke="${stroke}" stroke-width="2" stroke-dasharray="4"/>`;      break;
-    }
-    case 'iuk': {
-      inner = `<rect x="20" y="20" width="60" height="45" fill="${fill}" stroke="${stroke}" stroke-width="2.5" rx="4"/>
-        <line x1="30" y1="65" x2="70" y2="65" stroke="${stroke}" stroke-width="2"/>
-        <rect x="38" y="68" width="24" height="10" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-        <text x="${w/2}" y="${h/2+4}" text-anchor="middle" font-size="14" fill="${stroke}">IuK</text>`;      break;
-    }
-    default: {
-      inner = `<rect x="15" y="15" width="70" height="70" fill="${fill}" stroke="${stroke}" stroke-width="3" rx="4"/>
-        ${fach?`<text x="${w/2}" y="${h/2+5}" text-anchor="middle" font-size="18" fill="${stroke}">${fach.sym}</text>`:''}`;    }
+// Generate all combinations
+console.log('Building TZ database...');
+
+// For each grundzeichen x organisation x fachaufgabe combination
+// We limit to meaningful combos (not all combos are valid)
+let count = 0;
+
+for (const gz of grundzeichenList) {
+  // Without organisation / fachaufgabe (bare grundzeichen)
+  const bare = makeSvgUrl({ grundzeichen: gz.id });
+  if (bare) {
+    DB.push({
+      id: gz.id,
+      name: gz.label,
+      gz: gz.id, gzLabel: gz.label,
+      org: null, orgLabel: null,
+      fa: null, faLabel: null,
+      svgUrl: bare
+    });
+    count++;
   }
 
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
-}
-
-// ===== ZEICHENDATENBANK GENERIEREN =====
-function generateTZDB() {
-  const db = [];
-  let id = 1;
-
-  const einheitGZ = GRUNDZEICHEN.filter(g=>['quad'].includes(g.shape));
-  einheitGZ.forEach(gz => {
-    ORGS.forEach(org => {
-      db.push({
-        id: id++,
-        name: `${gz.name} - ${org.name}`,
-        kat: 'Einheit',
-        org: org.id,
-        orgName: org.name,
-        gz: gz.id,
-        fach: null,
-        hint: `Grundzeichen ${gz.name} der ${org.name}`,
-        svg: () => renderTZ(gz, org.id, null)
+  // With each organisation
+  for (const org of organisationenList) {
+    const withOrg = makeSvgUrl({ grundzeichen: gz.id, organisation: org.id });
+    if (withOrg) {
+      DB.push({
+        id: gz.id + '_' + org.id,
+        name: gz.label + ' - ' + org.label,
+        gz: gz.id, gzLabel: gz.label,
+        org: org.id, orgLabel: org.label,
+        fa: null, faLabel: null,
+        svgUrl: withOrg
       });
-      FACHAUFGABEN.forEach(fach => {
-        db.push({
-          id: id++,
-          name: `${gz.name} ${fach.name} - ${org.name}`,
-          kat: 'Einheit mit Fachaufgabe',
-          org: org.id,
-          orgName: org.name,
-          gz: gz.id,
-          fach: fach.id,
-          hint: `${gz.name} der ${org.name} mit Fachaufgabe ${fach.name}`,
-          svg: () => renderTZ(gz, org.id, fach)
+      count++;
+    }
+
+    // With each fachaufgabe
+    for (const fa of fachaufgabenList) {
+      const withFa = makeSvgUrl({ grundzeichen: gz.id, organisation: org.id, fachaufgabe: fa.id });
+      if (withFa) {
+        DB.push({
+          id: gz.id + '_' + org.id + '_' + fa.id,
+          name: fa.label + ' - ' + gz.label + ' - ' + org.label,
+          gz: gz.id, gzLabel: gz.label,
+          org: org.id, orgLabel: org.label,
+          fa: fa.id, faLabel: fa.label,
+          svgUrl: withFa
         });
-      });
-    });
-  });
-
-  const fahrzeugGZ = GRUNDZEICHEN.filter(g=>['kfz','lkw','anh','boot','hub'].includes(g.shape));
-  fahrzeugGZ.forEach(gz => {
-    ORGS.forEach(org => {
-      db.push({
-        id: id++,
-        name: `${gz.name} - ${org.name}`,
-        kat: 'Fahrzeuge',
-        org: org.id,
-        orgName: org.name,
-        gz: gz.id,
-        fach: null,
-        hint: `Fahrzeugzeichen ${gz.name} der ${org.name}`,
-        svg: () => renderTZ(gz, org.id, null)
-      });
-      FACHAUFGABEN.forEach(fach => {
-        db.push({
-          id: id++,
-          name: `${gz.name} ${fach.name} - ${org.name}`,
-          kat: 'Fahrzeuge mit Fachaufgabe',
-          org: org.id,
-          orgName: org.name,
-          gz: gz.id,
-          fach: fach.id,
-          hint: `${gz.name} der ${org.name} fuer ${fach.name}`,
-          svg: () => renderTZ(gz, org.id, fach)
-        });
-      });
-    });
-  });
-
-  const fuehGZ = GRUNDZEICHEN.filter(g=>['fkw','fst','iuk'].includes(g.shape));
-  fuehGZ.forEach(gz => {
-    ORGS.forEach(org => {
-      db.push({
-        id: id++,
-        name: `${gz.name} - ${org.name}`,
-        kat: 'Fuehrung',
-        org: org.id,
-        orgName: org.name,
-        gz: gz.id,
-        fach: null,
-        hint: `Fuehrungsmittel ${gz.name} der ${org.name}`,
-        svg: () => renderTZ(gz, org.id, null)
-      });
-    });
-  });
-
-  const ortsGZ = GRUNDZEICHEN.filter(g=>['kreis','dreieck','raute'].includes(g.shape));
-  ortsGZ.forEach(gz => {
-    ORGS.forEach(org => {
-      db.push({
-        id: id++,
-        name: `${gz.name} - ${org.name}`,
-        kat: 'Einrichtungen',
-        org: org.id,
-        orgName: org.name,
-        gz: gz.id,
-        fach: null,
-        hint: `${gz.name} der ${org.name}`,
-        svg: () => renderTZ(gz, org.id, null)
-      });
-      FACHAUFGABEN.slice(0,3).forEach(fach => {
-        db.push({
-          id: id++,
-          name: `${gz.name} ${fach.name} - ${org.name}`,
-          kat: 'Einrichtungen mit Fachaufgabe',
-          org: org.id,
-          orgName: org.name,
-          gz: gz.id,
-          fach: fach.id,
-          hint: `${gz.name} der ${org.name} fuer ${fach.name}`,
-          svg: () => renderTZ(gz, org.id, fach)
-        });
-      });
-    });
-  });
-
-  const personGZ = GRUNDZEICHEN.filter(g=>['person','person_v','person_t'].includes(g.shape));
-  personGZ.forEach(gz => {
-    ORGS.forEach(org => {
-      db.push({
-        id: id++,
-        name: `${gz.name} - ${org.name}`,
-        kat: 'Personen',
-        org: org.id,
-        orgName: org.name,
-        gz: gz.id,
-        fach: null,
-        hint: `Personenzeichen ${gz.name} der ${org.name}`,
-        svg: () => renderTZ(gz, org.id, null)
-      });
-    });
-  });
-
-  const gefahrGZ = GRUNDZEICHEN.filter(g=>
-    ['gefahr','feuer','ex','cbrn','wasser','einsturz','strom','gas'].includes(g.shape));
-  gefahrGZ.forEach(gz => {
-    db.push({
-      id: id++,
-      name: gz.name,
-      kat: 'Gefahren',
-      org: 'ALL',
-      orgName: 'Allgemein',
-      gz: gz.id,
-      fach: null,
-      hint: `Gefahrenzeichen: ${gz.name}`,
-      svg: () => renderTZ(gz, 'KAT', null)
-    });
-  });
-
-  const massGZ = GRUNDZEICHEN.filter(g=>
-    ['pfeil','barrier','ktw','einweis'].includes(g.shape));
-  massGZ.forEach(gz => {
-    ORGS.forEach(org => {
-      db.push({
-        id: id++,
-        name: `${gz.name} - ${org.name}`,
-        kat: 'Massnahmen',
-        org: org.id,
-        orgName: org.name,
-        gz: gz.id,
-        fach: null,
-        hint: `Massnahme: ${gz.name} durch ${org.name}`,
-        svg: () => renderTZ(gz, org.id, null)
-      });
-    });
-  });
-
-  return db;
-}
-
-const TZDB = generateTZDB();
-console.log(`TZ-Datenbank: ${TZDB.length} Zeichen geladen`);
-
-TZDB.forEach(tz => {
-  if(tz.fach) {
-    const f = FACHAUFGABEN.find(x=>x.id===tz.fach);
-    tz._fach = f;
+        count++;
+      }
+    }
   }
-  const g = GRUNDZEICHEN.find(x=>x.id===tz.gz);
-  tz._gz = g;
-});
-
-// ===== PERSISTENZ =====
-function loadState() {
-  try { return JSON.parse(localStorage.getItem('tz_state_v2')||'{}'); } catch(e){return{};}
-}
-function saveState(s) {
-  try { localStorage.setItem('tz_state_v2',JSON.stringify(s)); } catch(e){}
 }
 
+console.log('DB size:', DB.length);
+
+// ============================================================
+// STATE & PERSISTENCE
+// ============================================================
+const STORAGE_KEY = 'tz_state_v3';
+const INTERVALS = [0, 1, 3, 7, 14, 30]; // days per level
 let state = loadState();
-
-function getProgress() {
-  const learned = Object.keys(state.learned||{}).filter(id=>(state.learned[id].level||0)>=3).length;
-  return { total: TZDB.length, learned, pct: Math.round(learned/TZDB.length*100) };
-}
-
-function getLernData(id) {
-  return (state.learned||{})[id] || {level:0,nextReview:0,correct:0,wrong:0};
-}
-function setLernData(id, data) {
-  if(!state.learned) state.learned={};
-  state.learned[id]=data;
-  saveState(state);
-}
-
-// ===== FILTER =====
-let filterOrg = '';
-let filterKat = '';
-
-function getFilteredDB() {
-  return TZDB.filter(tz => {
-    if(filterOrg && tz.org !== filterOrg) return false;
-    if(filterKat && tz.kat !== filterKat) return false;
-    return true;
-  });
-}
-
-function populateFilters() {
-  const orgs = [...new Set(TZDB.map(t=>t.org))].sort();
-  const kats = [...new Set(TZDB.map(t=>t.kat))].sort();
-
-  ['start-org','bib-org'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
-    const prev=sel.value;
-    sel.innerHTML='<option value="">Alle Organisationen</option>';
-    ORGS.forEach(o=>sel.innerHTML+=`<option value="${o.id}">${o.name}</option>`);
-    sel.value=prev;
-  });
-  ['start-kat','bib-kat'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
-    const prev=sel.value;
-    sel.innerHTML='<option value="">Alle Kategorien</option>';
-    kats.forEach(k=>sel.innerHTML+=`<option value="${k}">${k}</option>`);
-    sel.value=prev;
-  });
-}
-
-function updateStartFilter() {
-  filterOrg = document.getElementById('start-org').value;
-  filterKat = document.getElementById('start-kat').value;
-  const n = getFilteredDB().length;
-  document.getElementById('start-count').textContent = `${n} Zeichen ausgewaehlt`;
-}
-
-// ===== STATS =====
-function updateStats() {
-  const p = getProgress();
-  document.getElementById('stat-total').textContent = p.total;
-  document.getElementById('stat-learned').textContent = p.learned;
-  document.getElementById('stat-pct').textContent = p.pct+'%';
-  document.getElementById('stat-streak').textContent = state.streak||0;
-  document.getElementById('stat-hs').textContent = state.highscore||0;
-}
-
-// ===== SCREENS =====
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  document.getElementById(name+'-screen').classList.add('active');
-  document.getElementById('nav-'+name).classList.add('active');
-  if(name==='start'){updateStats();updateStartFilter();}
-  if(name==='bib'){renderBib();}
-}
-
-// ===== LERNMODUS (SPACED REPETITION) =====
 let lernQueue = [];
 let lernIdx = 0;
-let lernSession = {correct:0,wrong:0};
-let isFlipped = false;
+let lernTotal = 0;
+let currentCard = null;
+let quizIdx = 0;
+let quizCorrect = 0;
+let quizTotal = 10;
+let quizQuestions = [];
+let currentQuizMode = 'tz2name';
+window.currentQuizMode = currentQuizMode;
 
-function buildLernQueue() {
-  const db = getFilteredDB();
-  const now = Date.now();
-
-  const neu = db.filter(tz => !getLernData(tz.id).level || getLernData(tz.id).level === 0);
-  const faellig = db.filter(tz => {
-    const d = getLernData(tz.id);
-    return d.level > 0 && d.level < 5 && d.nextReview <= now;
-  });
-  const rest = db.filter(tz => {
-    const d = getLernData(tz.id);
-    return d.level >= 5 || (d.level > 0 && d.nextReview > now);
-  });
-
-  const shuffle = arr => arr.sort(()=>Math.random()-.5);
-  return [...shuffle(faellig), ...shuffle(neu).slice(0,20), ...shuffle(rest).slice(0,5)];
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return { cards: s.cards || {}, lastStreak: s.lastStreak || null, streak: s.streak || 0 };
+  } catch { return { cards: {}, lastStreak: null, streak: 0 }; }
 }
 
-function startLernen() {
-  lernQueue = buildLernQueue();
-  if(!lernQueue.length) {
-    alert('Keine Zeichen in dieser Auswahl!');
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function getCard(id) {
+  return state.cards[id] || { level: 0, nextReview: 0, reviews: 0 };
+}
+
+function isDue(id) {
+  const c = getCard(id);
+  return c.nextReview <= Date.now();
+}
+
+function isLearned(id) {
+  return getCard(id).level > 0;
+}
+
+// ============================================================
+// FILTERS
+// ============================================================
+const filters = loadFilters();
+
+function loadFilters() {
+  try { return JSON.parse(localStorage.getItem('tz_filters') || '{}'); } catch { return {}; }
+}
+
+window.saveFilters = function() {
+  const f = {
+    org: document.getElementById('filter-org').value,
+    gz: document.getElementById('filter-gz').value,
+    fa: document.getElementById('filter-fa').value
+  };
+  localStorage.setItem('tz_filters', JSON.stringify(f));
+};
+
+function getFilteredDB() {
+  const org = document.getElementById('filter-org').value;
+  const gz = document.getElementById('filter-gz').value;
+  const fa = document.getElementById('filter-fa').value;
+  return DB.filter(z =>
+    (!org || z.org === org) &&
+    (!gz || z.gz === gz) &&
+    (!fa || z.fa === fa)
+  );
+}
+
+// Populate filter dropdowns
+function populateFilters() {
+  const orgs = [...new Map(organisationenList.map(o => [o.id, o.label])).entries()];
+  const gzs = [...new Map(grundzeichenList.map(g => [g.id, g.label])).entries()];
+  const fas = [...new Map(fachaufgabenList.map(f => [f.id, f.label])).entries()];
+
+  function fillSelect(id, entries, savedVal) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    while (el.options.length > 1) el.remove(1);
+    for (const [val, label] of entries) {
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = label;
+      el.appendChild(opt);
+    }
+    if (savedVal) el.value = savedVal;
+  }
+
+  const saved = loadFilters();
+  fillSelect('filter-org', orgs, saved.org);
+  fillSelect('filter-gz', gzs, saved.gz);
+  fillSelect('filter-fa', fas, saved.fa);
+  fillSelect('bib-org', orgs, '');
+  fillSelect('bib-gz', gzs, '');
+  fillSelect('bib-fa', fas, '');
+}
+
+// ============================================================
+// SCREENS
+// ============================================================
+window.showScreen = function(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(name + '-screen').classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'start') updateStartStats();
+  if (name === 'bib') renderBib();
+};
+
+function updateStartStats() {
+  const filtered = getFilteredDB();
+  const now = Date.now();
+  const due = filtered.filter(z => isDue(z.id)).length;
+  const learned = filtered.filter(z => isLearned(z.id)).length;
+  document.getElementById('stat-total').textContent = filtered.length;
+  document.getElementById('stat-gelernt').textContent = learned;
+  document.getElementById('stat-faellig').textContent = due;
+  document.getElementById('stat-streak').textContent = state.streak;
+}
+
+// ============================================================
+// LERNEN
+// ============================================================
+window.startLernen = function() {
+  const filtered = getFilteredDB();
+  const now = Date.now();
+  // Due cards first, then new cards (level 0, not yet reviewed)
+  const due = filtered.filter(z => isDue(z.id) && isLearned(z.id));
+  const newCards = filtered.filter(z => !isLearned(z.id)).slice(0, 20);
+  lernQueue = [...shuffle(due), ...shuffle(newCards)].slice(0, 40);
+  if (lernQueue.length === 0) {
+    showScreen('start');
     return;
   }
+  lernTotal = lernQueue.length;
   lernIdx = 0;
-  lernSession = {correct:0, wrong:0};
   showScreen('lern');
+  document.getElementById('lern-done').style.display = 'none';
+  document.getElementById('flashcard').style.display = '';
+  document.getElementById('rate-area').style.display = 'none';
   showLernCard();
-}
+};
 
 function showLernCard() {
-  const done = document.getElementById('lern-done');
-  const flashcard = document.getElementById('flashcard');
-  const actions = document.getElementById('card-actions');
-
-  if(lernIdx >= lernQueue.length) {
-    done.style.display='block';
-    flashcard.parentElement.style.display='none';
-    actions.style.display='none';
-    const hs = Math.max(state.highscore||0, lernSession.correct);
-    state.highscore = hs;
-    state.streak = (state.streak||0) + (lernSession.wrong===0?1:0);
-    saveState(state);
-    document.getElementById('lern-done-stats').textContent =
-      ` ${lernSession.correct} richtig ·  ${lernSession.wrong} falsch`;
-    updateStats();
+  if (lernIdx >= lernQueue.length) {
+    // Done
+    document.getElementById('flashcard').style.display = 'none';
+    document.getElementById('rate-area').style.display = 'none';
+    document.getElementById('lern-done').style.display = 'block';
+    updateStreak();
     return;
   }
 
-  done.style.display='none';
-  flashcard.parentElement.style.display='flex';
-  actions.style.display='none';
+  currentCard = lernQueue[lernIdx];
+  const fc = document.getElementById('flashcard');
+  fc.classList.remove('flipped');
+  document.getElementById('rate-area').style.display = 'none';
 
-  const tz = lernQueue[lernIdx];
-  const total = lernQueue.length;
-  const pct = Math.round(lernIdx/total*100);
+  // Front: show image, hint (org only)
+  document.getElementById('card-img-front').src = currentCard.svgUrl;
+  document.getElementById('card-hint').textContent = currentCard.orgLabel ? 'Organisation: ' + currentCard.orgLabel : '';
 
-  document.getElementById('lern-progress').style.width=pct+'%';
-  document.getElementById('lern-counter').textContent = `${lernIdx+1} / ${total}`;
-  document.getElementById('lern-mode-label').textContent = `Spaced-Repetition · Level ${getLernData(tz.id).level||0}/5`;
+  // Back: full info
+  document.getElementById('card-img-back').src = currentCard.svgUrl;
+  document.getElementById('card-name').textContent = currentCard.name;
+  document.getElementById('card-org').textContent = currentCard.orgLabel ? 'Organisation: ' + currentCard.orgLabel : '';
+  document.getElementById('card-fa').textContent = currentCard.faLabel ? 'Fachaufgabe: ' + currentCard.faLabel : '';
 
-  const svgHtml = tz.svg();
-  document.getElementById('cf-svg').outerHTML = svgHtml.replace('viewBox','class="tz-svg" viewBox').replace('<svg','<svg id="cf-svg"');
-  document.getElementById('cb-svg').outerHTML = svgHtml.replace('viewBox','class="tz-svg" viewBox').replace('<svg','<svg id="cb-svg"');
-  document.getElementById('cf-kat').textContent = tz.kat;
-  document.getElementById('cb-name').textContent = tz.name;
-  document.getElementById('cb-org').textContent = tz.orgName;
-  document.getElementById('cb-hint').textContent = tz.hint;
-
-  flashcard.classList.remove('flipped');
-  isFlipped = false;
-}
-
-function flipCard() {
-  if(isFlipped) return;
-  isFlipped = true;
-  document.getElementById('flashcard').classList.add('flipped');
-  document.getElementById('card-actions').style.display='flex';
-}
-
-function rateCard(rating) {
-  const tz = lernQueue[lernIdx];
-  const d = getLernData(tz.id);
-  const intervals = [0, 1, 3, 7, 14, 30];
-
-  let newLevel = d.level || 0;
-  if(rating === 3) {
-    newLevel = Math.min(5, newLevel + 1);
-    lernSession.correct++;
-  } else if(rating === 2) {
-    newLevel = Math.max(1, newLevel);
-    lernSession.wrong++;
-  } else {
-    newLevel = Math.max(0, newLevel - 1);
-    lernSession.wrong++;
-    lernQueue.push(tz);
+  // Level dots
+  const c = getCard(currentCard.id);
+  const dotsEl = document.getElementById('card-level');
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < INTERVALS.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'level-dot' + (i < c.level ? ' filled' : '');
+    dotsEl.appendChild(d);
   }
 
-  const nextReview = Date.now() + intervals[newLevel] * 86400000;
-  setLernData(tz.id, {
-    level: newLevel,
-    nextReview,
-    correct: (d.correct||0) + (rating===3?1:0),
-    wrong: (d.wrong||0) + (rating!==3?1:0)
-  });
+  // Progress
+  const pct = Math.round((lernIdx / lernTotal) * 100);
+  document.getElementById('lern-progress').style.width = pct + '%';
+  document.getElementById('lern-remaining').textContent = (lernTotal - lernIdx) + ' Karten';
+}
 
+window.flipCard = function() {
+  const fc = document.getElementById('flashcard');
+  fc.classList.toggle('flipped');
+  if (fc.classList.contains('flipped')) {
+    document.getElementById('rate-area').style.display = 'block';
+  }
+};
+
+window.rateCard = function(rating) {
+  if (!currentCard) return;
+  const c = getCard(currentCard.id);
+  if (rating === 1) {
+    c.level = Math.max(0, c.level - 1);
+    // Re-add to queue
+    lernQueue.push(currentCard);
+  } else if (rating === 2) {
+    c.level = Math.max(1, c.level);
+  } else {
+    c.level = Math.min(INTERVALS.length - 1, c.level + 1);
+  }
+  const days = INTERVALS[c.level];
+  c.nextReview = Date.now() + days * 86400000;
+  c.reviews = (c.reviews || 0) + 1;
+  state.cards[currentCard.id] = c;
+  saveState();
   lernIdx++;
   showLernCard();
-}
+};
 
-function shuffleQueue() {
-  lernQueue.sort(()=>Math.random()-.5);
-  lernIdx=0;
-  showLernCard();
-}
-
-function nextRound() {
-  startLernen();
-}
-
-function resetProgress() {
-  if(confirm('Gesamten Lernfortschritt zuruecksetzen?')) {
-    state = {};
-    saveState(state);
-    updateStats();
-    alert('Zurueckgesetzt.');
-  }
-}
-
-// ===== QUIZ =====
-let quizMode = 'zeichen-name';
-let quizQuestions = [];
-let quizIdx = 0;
-let quizScore = 0;
-let quizAnswered = false;
-
-function startQuiz(mode) {
-  quizMode = mode;
-  const db = getFilteredDB();
-  if(db.length < 4) { alert('Zu wenige Zeichen in dieser Auswahl (mindestens 4 noetig)!'); return; }
-
-  const shuffled = [...db].sort(()=>Math.random()-.5);
-  quizQuestions = shuffled.slice(0,10);
+// ============================================================
+// QUIZ
+// ============================================================
+window.startQuiz = function(mode) {
+  currentQuizMode = mode;
+  window.currentQuizMode = mode;
+  const filtered = getFilteredDB();
+  if (filtered.length < 4) { alert('Zu wenige Zeichen fuer Quiz. Filter anpassen.'); return; }
   quizIdx = 0;
-  quizScore = 0;
-
+  quizCorrect = 0;
+  quizTotal = Math.min(10, filtered.length);
+  quizQuestions = buildQuizQuestions(filtered, mode, quizTotal);
   showScreen('quiz');
-  document.getElementById('quiz-total').textContent = quizQuestions.length;
-  document.getElementById('quiz-mode-label').textContent = mode==='zeichen-name'?'Zeichen -> Name':'Name -> Zeichen';
-  document.getElementById('quiz-done').style.display='none';
-  document.getElementById('quiz-question').style.display='block';
-  document.getElementById('quiz-options').style.display='grid';
+  document.getElementById('quiz-done').style.display = 'none';
+  document.getElementById('quiz-title').textContent = mode === 'tz2name' ? 'Quiz: Zeichen erkennen' : 'Quiz: Zeichen zuordnen';
+  document.getElementById('quiz-tz2name').style.display = mode === 'tz2name' ? '' : 'none';
+  document.getElementById('quiz-name2tz').style.display = mode === 'name2tz' ? '' : 'none';
   showQuizQuestion();
+};
+
+function buildQuizQuestions(pool, mode, n) {
+  const shuffled = shuffle([...pool]);
+  return shuffled.slice(0, n).map(correct => {
+    const others = shuffle(pool.filter(z => z.id !== correct.id)).slice(0, 3);
+    const options = shuffle([correct, ...others]);
+    return { correct, options };
+  });
 }
 
 function showQuizQuestion() {
-  if(quizIdx >= quizQuestions.length) {
-    endQuiz();
+  if (quizIdx >= quizQuestions.length) {
+    document.getElementById('quiz-tz2name').style.display = 'none';
+    document.getElementById('quiz-name2tz').style.display = 'none';
+    document.getElementById('quiz-next-btn').style.display = 'none';
+    document.getElementById('quiz-done').style.display = 'block';
+    const pct = Math.round((quizCorrect / quizTotal) * 100);
+    document.getElementById('quiz-final-score').textContent =
+      quizCorrect + ' von ' + quizTotal + ' richtig (' + pct + '%)';
     return;
   }
-  quizAnswered = false;
-  const tz = quizQuestions[quizIdx];
-  const db = TZDB;
 
-  const wrong = db.filter(t=>t.id!==tz.id).sort(()=>Math.random()-.5).slice(0,3);
-  const options = [tz, ...wrong].sort(()=>Math.random()-.5);
+  const q = quizQuestions[quizIdx];
+  document.getElementById('quiz-score-badge').textContent = quizIdx + '/' + quizTotal;
+  document.getElementById('quiz-next-btn').style.display = 'none';
 
-  document.getElementById('quiz-num').textContent = quizIdx+1;
-  document.getElementById('quiz-progress').style.width=(quizIdx/quizQuestions.length*100)+'%';
-  document.getElementById('quiz-score').textContent = quizScore;
-
-  const qsvg = document.getElementById('quiz-svg');
-  const qtext = document.getElementById('quiz-text');
-  const qkat = document.getElementById('quiz-kat');
-
-  if(quizMode==='zeichen-name') {
-    qsvg.outerHTML = tz.svg().replace('viewBox','class="tz-svg" style="width:120px;height:120px;margin:0 auto 12px" viewBox').replace('<svg','<svg id="quiz-svg"');
-    qtext.textContent = 'Wie heisst dieses Zeichen?';
-    qkat.textContent = `Kategorie: ${tz.kat}`;
-
-    const opts = document.getElementById('quiz-options');
-    opts.innerHTML = '';
-    options.forEach(opt => {
-      const btn = document.createElement('div');
+  if (currentQuizMode === 'tz2name') {
+    document.getElementById('qtz-img').src = q.correct.svgUrl;
+    const optsEl = document.getElementById('qtz-opts');
+    optsEl.innerHTML = '';
+    for (const opt of q.options) {
+      const btn = document.createElement('button');
       btn.className = 'quiz-opt';
       btn.textContent = opt.name;
-      btn.onclick = () => answerQuiz(opt.id === tz.id, btn, opts, tz.id);
-      opts.appendChild(btn);
-    });
-  } else {
-    qsvg.style.display='none';
-    qtext.textContent = tz.name;
-    qkat.textContent = `Kategorie: ${tz.kat}`;
-
-    const opts = document.getElementById('quiz-options');
-    opts.innerHTML = '';
-    opts.style.gridTemplateColumns = '1fr 1fr';
-    options.forEach(opt => {
-      const btn = document.createElement('div');
-      btn.className = 'quiz-opt';
-      btn.innerHTML = opt.svg().replace('viewBox','style="width:60px;height:60px;display:block;margin:0 auto 6px" viewBox');
-      btn.innerHTML += `<div style="font-size:0.7rem;color:var(--muted)">${opt.orgName}</div>`;
-      btn.onclick = () => answerQuiz(opt.id === tz.id, btn, opts, tz.id);
-      opts.appendChild(btn);
-    });
-  }
-}
-
-function answerQuiz(correct, btn, opts, correctId) {
-  if(quizAnswered) return;
-  quizAnswered = true;
-
-  const tz = quizQuestions[quizIdx];
-  const d = getLernData(tz.id);
-  const intervals = [0,1,3,7,14,30];
-  let newLevel = d.level||0;
-  if(correct) { newLevel=Math.min(5,newLevel+1); quizScore++; }
-  else { newLevel=Math.max(0,newLevel-1); }
-  setLernData(tz.id,{level:newLevel,nextReview:Date.now()+intervals[newLevel]*86400000,correct:(d.correct||0)+(correct?1:0),wrong:(d.wrong||0)+(correct?0:1)});
-
-  btn.classList.add(correct?'correct':'wrong');
-  opts.querySelectorAll('.quiz-opt').forEach(b=>{
-    if(quizMode==='zeichen-name') {
-      if(b.textContent === TZDB.find(t=>t.id===correctId)?.name) b.classList.add('reveal-correct');
-    } else {
-      b.classList.add('reveal-correct');
+      btn.onclick = () => answerQuiz(btn, opt.id === q.correct.id, optsEl);
+      optsEl.appendChild(btn);
     }
-  });
-  document.getElementById('quiz-score').textContent = quizScore;
-
-  setTimeout(()=>{
-    quizIdx++;
-    showQuizQuestion();
-  }, 1200);
+  } else {
+    document.getElementById('qname-text').textContent = q.correct.name;
+    const optsEl = document.getElementById('qname-opts');
+    optsEl.innerHTML = '';
+    for (const opt of q.options) {
+      const btn = document.createElement('div');
+      btn.className = 'quiz-img-opt';
+      btn.innerHTML = '<img src="' + opt.svgUrl + '" alt="">';
+      btn.onclick = () => answerQuiz(btn, opt.id === q.correct.id, optsEl);
+      optsEl.appendChild(btn);
+    }
+  }
 }
 
-function endQuiz() {
-  document.getElementById('quiz-done').style.display='block';
-  document.getElementById('quiz-question').style.display='none';
-  document.getElementById('quiz-options').style.display='none';
-  const pct = Math.round(quizScore/quizQuestions.length*100);
-  document.getElementById('quiz-final-score').textContent = `${quizScore}/${quizQuestions.length} (${pct}%)`;
-  const msg = pct>=80?'Ausgezeichnet! ':pct>=60?'Gut gemacht! ':'Weiter ueben! ';
-  document.getElementById('quiz-final-text').textContent = msg;
-
-  const hs = Math.max(state.highscore||0, quizScore);
-  state.highscore = hs;
-  state.streak = (state.streak||0)+1;
-  saveState(state);
-  updateStats();
+function answerQuiz(el, isCorrect, container) {
+  container.querySelectorAll('.quiz-opt,.quiz-img-opt').forEach(b => b.classList.add('disabled'));
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (isCorrect) quizCorrect++;
+  document.getElementById('quiz-next-btn').style.display = 'block';
 }
 
-function restartQuiz() {
-  startQuiz(quizMode);
-}
+window.nextQuizQuestion = function() {
+  quizIdx++;
+  showQuizQuestion();
+};
 
-// ===== BIBLIOTHEK =====
-function renderBib() {
-  const search = (document.getElementById('bib-search')?.value||'').toLowerCase();
-  const org = document.getElementById('bib-org')?.value||'';
-  const kat = document.getElementById('bib-kat')?.value||'';
+// ============================================================
+// BIBLIOTHEK
+// ============================================================
+window.renderBib = function() {
+  const search = document.getElementById('bib-search').value.toLowerCase();
+  const org = document.getElementById('bib-org').value;
+  const gz = document.getElementById('bib-gz').value;
+  const fa = document.getElementById('bib-fa').value;
 
-  filterOrg = document.getElementById('start-org')?.value||'';
-  filterKat = document.getElementById('start-kat')?.value||'';
+  const filtered = DB.filter(z =>
+    (!org || z.org === org) &&
+    (!gz || z.gz === gz) &&
+    (!fa || z.fa === fa) &&
+    (!search || z.name.toLowerCase().includes(search) ||
+     (z.orgLabel || '').toLowerCase().includes(search) ||
+     (z.faLabel || '').toLowerCase().includes(search) ||
+     (z.gzLabel || '').toLowerCase().includes(search))
+  ).slice(0, 200);
 
-  const filtered = TZDB.filter(tz=>{
-    if(org && tz.org!==org) return false;
-    if(kat && tz.kat!==kat) return false;
-    if(search && !tz.name.toLowerCase().includes(search) && !tz.kat.toLowerCase().includes(search)) return false;
-    return true;
-  });
+  document.getElementById('bib-count').textContent = filtered.length + ' Zeichen (max. 200 angezeigt)';
+  document.getElementById('bib-count-badge').textContent = filtered.length;
 
-  document.getElementById('bib-count').textContent = `${filtered.length} Zeichen`;
-
-  const show = filtered.slice(0,200);
   const grid = document.getElementById('bib-grid');
-  if(!show.length){
-    grid.innerHTML='<div class="empty"><div class="empty-icon"></div>Keine Zeichen gefunden</div>';
-    return;
+  grid.innerHTML = '';
+  for (const z of filtered) {
+    const item = document.createElement('div');
+    item.className = 'bib-item';
+    const c = getCard(z.id);
+    const dots = Array.from({length: INTERVALS.length}, (_, i) =>
+      '<div class="level-dot' + (i < c.level ? ' filled' : '') + '"></div>'
+    ).join('');
+    item.innerHTML = '<img src="' + z.svgUrl + '" alt="' + z.name + '" loading="lazy"><div class="bi-name">' + z.name + '</div><div class="level-dots">' + dots + '</div>';
+    item.onclick = () => openModal(z);
+    grid.appendChild(item);
   }
+};
 
-  grid.innerHTML = show.map(tz=>{
-    const d = getLernData(tz.id);
-    const learned = d.level>=3?' learned':'';
-    return `<div class="bib-card${learned}" onclick="showBibDetail(${tz.id})">
-      ${tz.svg().replace('<svg',`<svg style="width:64px;height:64px;display:block;margin:0 auto 6px"`)}
-      <div class="bc-name">${tz.name.replace(` - ${tz.orgName}`,'')}</div>
-      <div class="bc-org">${tz.orgName}${d.level?` · L${d.level}`:''}</div>
-    </div>`;
-  }).join('');
+function openModal(z) {
+  const c = getCard(z.id);
+  document.getElementById('modal-img').src = z.svgUrl;
+  document.getElementById('modal-name').textContent = z.name;
+  document.getElementById('modal-org').textContent = z.orgLabel ? 'Organisation: ' + z.orgLabel : '';
+  document.getElementById('modal-fa').textContent = z.faLabel ? 'Fachaufgabe: ' + z.faLabel : '';
+  document.getElementById('modal-gz').textContent = 'Grundzeichen: ' + z.gzLabel;
+  const dotsEl = document.getElementById('modal-level');
+  dotsEl.innerHTML = Array.from({length: INTERVALS.length}, (_, i) =>
+    '<div class="level-dot' + (i < c.level ? ' filled' : '') + '"></div>'
+  ).join('');
+  document.getElementById('modal').style.display = 'flex';
+}
 
-  if(filtered.length>200) {
-    grid.innerHTML += `<div class="empty" style="padding:20px;font-size:0.8rem">... und ${filtered.length-200} weitere. Filter eingrenzen.</div>`;
+window.closeModal = function() {
+  document.getElementById('modal').style.display = 'none';
+};
+
+// ============================================================
+// STREAK
+// ============================================================
+function updateStreak() {
+  const today = new Date().toDateString();
+  if (state.lastStreak === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.lastStreak === yesterday) {
+    state.streak++;
+  } else if (state.lastStreak !== today) {
+    state.streak = 1;
   }
+  state.lastStreak = today;
+  saveState();
 }
 
-function showBibDetail(id) {
-  const tz = TZDB.find(t=>t.id===id);
-  if(!tz) return;
-  const d = getLernData(id);
-  alert(`${tz.name}\n\nKategorie: ${tz.kat}\nOrganisation: ${tz.orgName}\nLevel: ${d.level||0}/5\nRichtig: ${d.correct||0} · Falsch: ${d.wrong||0}\n\n${tz.hint}`);
+// ============================================================
+// UTILS
+// ============================================================
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
-function populateBibFilters() {
-  const kats = [...new Set(TZDB.map(t=>t.kat))].sort();
-  const bibKat = document.getElementById('bib-kat');
-  bibKat.innerHTML='<option value="">Alle Kategorien</option>';
-  kats.forEach(k=>bibKat.innerHTML+=`<option value="${k}">${k}</option>`);
+// ============================================================
+// INIT
+// ============================================================
+populateFilters();
+updateStartStats();
+document.getElementById('loading').style.display = 'none';
+console.log('TZ Trainer v3 ready. DB size:', DB.length);
 
-  const bibOrg = document.getElementById('bib-org');
-  bibOrg.innerHTML='<option value="">Alle Organisationen</option>';
-  ORGS.forEach(o=>bibOrg.innerHTML+=`<option value="${o.id}">${o.name}</option>`);
-}
-
-// ===== INIT =====
-document.addEventListener('DOMContentLoaded',()=>{
-  populateFilters();
-  populateBibFilters();
-  updateStats();
-  updateStartFilter();
-  console.log('Beispiel-SVG:', TZDB[0]?.svg().substring(0,100));
-});
 </script>
 </body>
 </html>
