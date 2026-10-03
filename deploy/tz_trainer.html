@@ -309,23 +309,13 @@ button.back-btn:hover{border-color:var(--accent);color:var(--accent)}
   </div>
 </div>
 
-<script type="module">
-// ============================================================
-// IMPORT from taktische-zeichen library (jsDelivr CDN)
-// ============================================================
-let erzeuge, grundzeichenList, fachaufgabenList, organisationenList, einheitenList;
+<script src="tz_core.js"></script>
+<script>
+// TZ lib available as window.TZ
+const { erzeugeTaktischesZeichen: erzeuge, grundzeichen: grundzeichenList,
+        fachaufgaben: fachaufgabenList, organisationen: organisationenList,
+        einheiten: einheitenList } = TZ;
 
-try {
-  const mod = await import('https://cdn.jsdelivr.net/npm/@taktische-zeichen/core@+esm');
-  erzeuge = mod.erzeugeTaktischesZeichen;
-  grundzeichenList = mod.grundzeichen;
-  fachaufgabenList = mod.fachaufgaben;
-  organisationenList = mod.organisationen;
-  einheitenList = mod.einheiten;
-} catch(e) {
-  document.getElementById('loading').innerHTML = '<p style="color:#e74c3c">Fehler beim Laden der Bibliothek:<br>' + e.message + '<br><br>Bitte Seite neu laden oder Internetverbindung pruefen.</p>';
-  throw e;
-}
 
 // ============================================================
 // BUILD DATABASE
@@ -483,6 +473,12 @@ function populateFilters() {
   const orgs = [...new Map(organisationenList.map(o => [o.id, o.label])).entries()];
   const gzs = [...new Map(grundzeichenList.map(g => [g.id, g.label])).entries()];
   const fas = [...new Map(fachaufgabenList.map(f => [f.id, f.label])).entries()];
+
+  const selects = [
+    ['filter-org', 'bib-org'],
+    ['filter-gz', 'bib-gz'],
+    ['filter-fa', 'bib-fa']
+  ];
 
   function fillSelect(id, entries, savedVal) {
     const el = document.getElementById(id);
