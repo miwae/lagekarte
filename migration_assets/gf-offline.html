@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gefahrstoffdatei</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#0a1628;color:#f0f4f8;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{background:#0f0f1a;border-bottom:2px solid #e85d04;padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;flex-shrink:0;flex-wrap:wrap}
+#hdr h1{font-size:.95rem;font-weight:800}#hdr h1 span{color:#e85d04}
+.badge{font-size:.65rem;background:rgba(232,93,4,.12);border:1px solid rgba(232,93,4,.3);color:#e85d04;padding:.12rem .45rem;border-radius:3px}
+#srch{background:#112240;border:1.5px solid rgba(232,93,4,.2);color:#f0f4f8;border-radius:5px;padding:.32rem .6rem;font-size:.8rem;flex:1;max-width:240px;min-width:120px}
+#srch:focus{outline:none;border-color:#e85d04}
+#srch::placeholder{color:#3a5070}
+#cnt{font-size:.68rem;color:#4a6080;white-space:nowrap}
+#body{flex:1;display:flex;overflow:hidden}
+#list{flex:1;overflow-y:auto;padding:.8rem}
+#list::-webkit-scrollbar{width:4px}#list::-webkit-scrollbar-thumb{background:#e85d04;border-radius:2px}
+.cat-hdr{font-size:.68rem;color:#e85d04;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin:1rem 0 .4rem;padding-bottom:.25rem;border-bottom:1px solid rgba(232,93,4,.15)}
+.cat-hdr:first-child{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:.5rem;margin-bottom:.25rem}
+.card{background:#0d1b2a;border:1.5px solid rgba(232,93,4,.1);border-radius:8px;padding:.5rem .4rem;cursor:pointer;transition:all .14s;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.card:hover,.card.sel{border-color:#e85d04;background:#1a3050;transform:translateY(-1px)}
+.card.sel{box-shadow:0 0 0 2px rgba(232,93,4,.3)}
+.card img{width:76px;height:76px;object-fit:contain;border-radius:5px;background:white;padding:3px;display:block;flex-shrink:0}
+.cname{font-size:.62rem;color:#c8d4e0;text-align:center;line-height:1.25;font-weight:600;word-break:break-word}
+#detail{width:280px;flex-shrink:0;background:#0d1b2a;border-left:1px solid rgba(232,93,4,.15);padding:.8rem;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem}
+#detail::-webkit-scrollbar{width:4px}#detail::-webkit-scrollbar-thumb{background:#e85d04;border-radius:2px}
+#det-img-wrap{width:160px;height:160px;margin:0 auto;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+#det-img-wrap img{width:148px;height:148px;object-fit:contain}
+#det-name{font-size:.92rem;font-weight:800;color:#f0f4f8;text-align:center;line-height:1.3}
+#det-cat{font-size:.65rem;color:#e85d04;text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+#det-signal{font-size:.72rem;text-align:center;padding:.2rem .6rem;border-radius:4px;background:rgba(232,93,4,.1);color:#e85d04;font-weight:700;width:fit-content;margin:0 auto}
+#det-desc{font-size:.76rem;color:#8ba0b4;line-height:1.55;background:#112240;border-radius:5px;padding:.45rem .55rem}
+#det-schutz{font-size:.74rem;color:#22c55e;line-height:1.5;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:5px;padding:.4rem .55rem}
+#det-empty{color:#3a5070;font-size:.76rem;text-align:center;margin-top:3rem;line-height:1.8}
+
+/* ====== GESTIS-LINK ====== */
+#gestis-bar{background:#112240;border-top:1px solid rgba(232,93,4,.15);
+  padding:.4rem .8rem;display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+#gestis-bar label{font-size:.68rem;color:#4a6080;white-space:nowrap}
+#gestis-input{background:#0a1628;border:1.5px solid rgba(232,93,4,.2);color:#f0f4f8;
+  border-radius:4px;padding:.25rem .5rem;font-size:.75rem;flex:1;min-width:0}
+#gestis-input:focus{outline:none;border-color:#e85d04}
+#gestis-btn{background:#e85d04;border:none;color:#fff;padding:.25rem .7rem;
+  border-radius:4px;cursor:pointer;font-size:.72rem;font-weight:700;white-space:nowrap}
+#gestis-btn:hover{background:#f97316}
+#gestis-links{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.glink{font-size:.65rem;color:#4a6080;text-decoration:none;padding:.15rem .35rem;
+  border:1px solid rgba(232,93,4,.15);border-radius:3px;white-space:nowrap}
+.glink:hover{color:#e85d04;border-color:#e85d04}
+
+
+/* ====== H/P-SATZ NACHSCHLAGEN ====== */
+#hp-panel{position:absolute;top:0;right:0;width:320px;height:100%;
+  background:#0a1628;border-left:1.5px solid rgba(232,93,4,.25);
+  display:none;flex-direction:column;z-index:500}
+#hp-panel.open{display:flex}
+#hp-hdr{background:#0f0f1a;padding:.5rem .7rem;border-bottom:1px solid rgba(232,93,4,.2);
+  display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+#hp-hdr h3{font-size:.78rem;font-weight:800;color:#e85d04;flex:1}
+#hp-close{background:none;border:none;color:#4a6080;cursor:pointer;font-size:.9rem;padding:.1rem}
+#hp-close:hover{color:#e85d04}
+#hp-search-wrap{padding:.5rem .6rem;border-bottom:1px solid rgba(232,93,4,.1);flex-shrink:0}
+#hp-input{width:100%;background:#112240;border:1.5px solid rgba(232,93,4,.2);
+  color:#f0f4f8;border-radius:5px;padding:.3rem .5rem;font-size:.78rem}
+#hp-input:focus{outline:none;border-color:#e85d04}
+#hp-tabs{display:flex;border-bottom:1px solid rgba(232,93,4,.1);flex-shrink:0}
+.hp-tab{flex:1;padding:.3rem;font-size:.7rem;font-weight:700;color:#4a6080;
+  cursor:pointer;text-align:center;border-bottom:2px solid transparent}
+.hp-tab.active{color:#e85d04;border-bottom-color:#e85d04}
+#hp-list{flex:1;overflow-y:auto;padding:.4rem .5rem}
+#hp-list::-webkit-scrollbar{width:3px}
+#hp-list::-webkit-scrollbar-thumb{background:#e85d04;border-radius:2px}
+.hp-item{padding:.3rem .4rem;margin-bottom:.2rem;border-radius:4px;cursor:pointer;
+  border:1px solid transparent;transition:all .1s}
+.hp-item:hover{background:#112240;border-color:rgba(232,93,4,.2)}
+.hp-code{font-size:.72rem;font-weight:800;color:#e85d04;font-family:monospace}
+.hp-code.H{color:#ef4444}.hp-code.P{color:#f59e0b}.hp-code.EUH{color:#a855f7}
+.hp-text{font-size:.68rem;color:#c8d4e0;line-height:1.35;margin-top:.1rem}
+#hp-detail{padding:.5rem .7rem;background:#112240;border-top:1px solid rgba(232,93,4,.1);
+  display:none;flex-shrink:0}
+#hp-detail .hp-code{font-size:.82rem}
+#hp-detail .hp-text{font-size:.74rem;color:#f0f4f8;margin-top:.3rem;line-height:1.5}
+#hp-gestis-hint{font-size:.65rem;color:#4a6080;margin-top:.4rem;text-align:center}
+#hp-gestis-hint a{color:#e85d04;text-decoration:none}
+
+/* Layout-Anpassung wenn HP-Panel offen */
+#body.hp-open #list{margin-right:320px}
+#body.hp-open #detail{display:none}
+
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>&#9762;&#65039; Gefahrstoff<span>datei</span></h1>
+  <span class="badge">GHS</span><span class="badge">ASR A1.3</span><span class="badge">ISO 7010</span><span class="badge" style="cursor:pointer;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#ef4444" onclick="toggleHPPanel()" title="H/P-Satz Nachschlagewerk">📋 H/P-Sätze</span>
+  <input id="srch" placeholder="&#128269; Suchen..." oninput="search(this.value)">
+  <span id="cnt"></span>
+</div>
+
+<div id="gestis-bar">
+  <label>🔬 GESTIS:</label>
+  <input id="gestis-input" placeholder="Stoff suchen... (Name, CAS-Nr., z.B. Benzol, 71-43-2)" 
+    onkeydown="if(event.key==='Enter')gestisSearch()">
+  <button id="gestis-btn" onclick="gestisSearch()">🔍 DGUV GESTIS</button>
+  <div id="gestis-links">
+    <a class="glink" href="https://gestis.dguv.de/" target="_blank" title="GESTIS Startseite">📖 GESTIS</a>
+    <a class="glink" href="https://gestis.dguv.de/search" target="_blank" title="GESTIS Suche">🔎 Suche</a>
+    <a class="glink" href="https://www.dguv.de/ifa/gestis/gestis-internationale-grenzwerte-fuer-chemische-substanzen-limit-values-for-chemical-agents/index.jsp" target="_blank" title="Grenzwerte">📊 AGW</a>
+    <a class="glink" href="https://www.dguv.de/ifa/gestis/gestis-biostoffdatenbank/index.jsp" target="_blank" title="Biostoffe">🦠 Biostoffe</a>
+  </div>
+</div>
+<div id="body">
+  <div id="list"><div id="content"></div></div>
+  <div id="detail">
+    <div id="det-empty">&#8592; Zeichen anklicken<br>f&#252;r Details</div>
+    <div id="det-full" style="display:none;flex-direction:column;gap:.6rem">
+      <div id="det-img-wrap"><img id="det-img" src="" alt=""></div>
+      <div id="det-name"></div>
+      <div id="det-cat"></div>
+      <div id="det-signal"></div>
+      <div id="det-desc"></div>
+      <div id="det-schutz" style="display:none"></div>
+    </div>
+  </div>
+</div>
+<script>
+var DATA=[{"id":"ghs_01","name":"GHS01 – Explodierende Bombe","cat":"🧨 GHS-Piktogramme","signal":"Gefahr","desc":"Explosive Stoffe, selbstzersetzliche Stoffe, organische Peroxide","schutz":"Zündquellen fernhalten, Erschütterungen vermeiden","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_01_gr.gif"},{"id":"ghs_02","name":"GHS02 – Flamme","cat":"🧨 GHS-Piktogramme","signal":"Gefahr/Achtung","desc":"Entzündbare Flüssigkeiten, Gase, Aerosole, selbstreaktive Stoffe","schutz":"Von Wärme und Funken fernhalten, gut belüften","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_02_gr.gif"},{"id":"ghs_03","name":"GHS03 – Flamme über Kreis","cat":"🧨 GHS-Piktogramme","signal":"Gefahr/Achtung","desc":"Oxidierende Stoffe – verstärken Brände erheblich","schutz":"Von brennbaren Stoffen fernhalten","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_03_gr.gif"},{"id":"ghs_04","name":"GHS04 – Gasflasche","cat":"🧨 GHS-Piktogramme","signal":"Achtung","desc":"Gase unter Druck: Druckgase, verflüssigte Gase","schutz":"Kühl lagern, vor Sturz sichern","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_04_gr.gif"},{"id":"ghs_05","name":"GHS05 – Ätzwirkung","cat":"🧨 GHS-Piktogramme","signal":"Gefahr","desc":"Ätzwirkung auf Metalle, Haut und Augen","schutz":"Schutzbrille, Handschuhe, Schutzkleidung","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_05_gr.gif"},{"id":"ghs_06","name":"GHS06 – Totenkopf","cat":"🧨 GHS-Piktogramme","signal":"Gefahr","desc":"Akute Toxizität Kat. 1–3: Lebensgefahr","schutz":"Vollschutz, Atemschutz, keine Exposition","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_06_gr.gif"},{"id":"ghs_07","name":"GHS07 – Ausrufezeichen","cat":"🧨 GHS-Piktogramme","signal":"Achtung","desc":"Reizend, schädlich, sensibilisierend (Haut/Atemwege)","schutz":"Schutzhandschuhe, Schutzbrille, Belüftung","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_07_gr.gif"},{"id":"ghs_08","name":"GHS08 – Gesundheitsgefahr","cat":"🧨 GHS-Piktogramme","signal":"Gefahr","desc":"Karzinogen, Mutagenität, reproduktionstoxisch, Organschädigung","schutz":"Exposition minimieren, regelmäßige Vorsorge","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_08_gr.gif"},{"id":"ghs_09","name":"GHS09 – Umweltgefahr","cat":"🧨 GHS-Piktogramme","signal":"Achtung","desc":"Gewässergefährdend (akut/chronisch)","schutz":"Freisetzung in Gewässer verhindern","img":"https://emsland3dfab.shop/wp-content/uploads/2026/04/GHS_09_gr.gif"},{"id":"alt_aetzend","name":"Ätzend (C)","cat":"🟠 Alte Gefahrensymbole","signal":"C","desc":"Ätzende Stoffe. Schwere Haut- und Augenschäden.","schutz":"Ersetzt durch GHS05","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_001 Aetzend.jpg"},{"id":"alt_brandfoerdernd","name":"Brandfördernd (O)","cat":"🟠 Alte Gefahrensymbole","signal":"O","desc":"Brandfördernde/Oxidierende Stoffe.","schutz":"Ersetzt durch GHS03","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_002 Brandfoerdernd.jpg"},{"id":"alt_explosionsgefaehrlich","name":"Explosionsgefährlich (E)","cat":"🟠 Alte Gefahrensymbole","signal":"E","desc":"Explosive Stoffe.","schutz":"Ersetzt durch GHS01","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_003 Explosionsgefaehrlich.jpg"},{"id":"alt_gesundheitsschaedlich","name":"Gesundheitsschädlich (Xn)","cat":"🟠 Alte Gefahrensymbole","signal":"Xn","desc":"Gesundheitsschädliche Stoffe.","schutz":"Ersetzt durch GHS07/08","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_004 Gesundheitsschaedlich.jpg"},{"id":"alt_giftig","name":"Giftig (T)","cat":"🟠 Alte Gefahrensymbole","signal":"T","desc":"Giftige Stoffe.","schutz":"Ersetzt durch GHS06","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_005 Giftig.jpg"},{"id":"alt_hochentzuendlich","name":"Hochentzündlich (F+)","cat":"🟠 Alte Gefahrensymbole","signal":"F+","desc":"Hochentzündliche Stoffe. Flammpunkt unter 0°C.","schutz":"Ersetzt durch GHS02","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_006 Hochentzuendlich.jpg"},{"id":"alt_leichtentzuendlich","name":"Leichtentzündlich (F)","cat":"🟠 Alte Gefahrensymbole","signal":"F","desc":"Leichtentzündliche Stoffe. Flammpunkt 0–21°C.","schutz":"Ersetzt durch GHS02","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_007 Leichtentzuendlich.jpg"},{"id":"alt_reizend","name":"Reizend (Xi)","cat":"🟠 Alte Gefahrensymbole","signal":"Xi","desc":"Reizende Stoffe (Haut, Augen, Atemwege).","schutz":"Ersetzt durch GHS07","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_008 Reizend.jpg"},{"id":"alt_sehr_giftig","name":"Sehr giftig (T+)","cat":"🟠 Alte Gefahrensymbole","signal":"T+","desc":"Sehr giftige Stoffe. Höchste Toxizitätsstufe.","schutz":"Ersetzt durch GHS06","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_009 Sehr_Giftig_T.PNG"},{"id":"alt_umweltgefaehrlich","name":"Umweltgefährlich (N)","cat":"🟠 Alte Gefahrensymbole","signal":"N","desc":"Umweltgefährdende Stoffe.","schutz":"Ersetzt durch GHS09","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_010 Umweltgefaehrlich.jpg"},{"id":"asra_f001","name":"F001 – Feuerlöscher","cat":"🔴 Brandschutzzeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Feuerlöscher","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Brandschutzzeichen/F001_Feuerloescher_T.PNG"},{"id":"asra_f002","name":"F002 – Löschschlauch","cat":"🔴 Brandschutzzeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Löschschlauch","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Brandschutzzeichen/F002_Loeschschlauch_T.PNG"},{"id":"asra_f003","name":"F003 – Feuerleiter","cat":"🔴 Brandschutzzeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Feuerleiter","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Brandschutzzeichen/F003_Feuerleiter_T.PNG"},{"id":"asra_f004","name":"F004 – Mittel zur Brandbekämpfung","cat":"🔴 Brandschutzzeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Mittel zur Brandbekämpfung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Brandschutzzeichen/F004_MuG_Brandbekaempfung_T.PNG"},{"id":"asra_f005","name":"F005 – Brandmelder","cat":"🔴 Brandschutzzeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Brandmelder","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Brandschutzzeichen/F005_Brandmelder_T.PNG"},{"id":"asra_f006","name":"F006 – Brandmeldetelefon","cat":"🔴 Brandschutzzeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Brandmeldetelefon","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Brandschutzzeichen/F006_Brandmeldetelefon_T.PNG"},{"id":"asra_m001","name":"M001 – Allg. Gebotszeichen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Allg. Gebotszeichen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M001_AllgemeinesGebotszeichen_T.PNG"},{"id":"asra_m003","name":"M003 – Gehörschutz","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Gehörschutz","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M003_Gehoerschutzbenutzen__T.PNG"},{"id":"asra_m004","name":"M004 – Augenschutz","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Augenschutz","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M004_Augenschutzbenutzen_T.PNG"},{"id":"asra_m008","name":"M008 – Schutzkleidung","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Schutzkleidung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M008_Fussschutzbenutzen_T.PNG"},{"id":"asra_m009","name":"M009 – Fußschutz","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Fußschutz","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M009_Handschutzbenutzen_T.PNG"},{"id":"asra_m010","name":"M010 – Schutzhelm","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Schutzhelm","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M010_Schutzkleidungbenutzen_T.PNG"},{"id":"asra_m011","name":"M011 – Kopfschutz","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Kopfschutz","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M011_Haendewaschen_T.PNG"},{"id":"asra_m012","name":"M012 – M012 Handlaufbenutzen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: M012 Handlaufbenutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M012_Handlaufbenutzen_T.PNG"},{"id":"asra_m013","name":"M013 – Fußgänger","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Fußgänger","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M013_Gesichtsschutzbenutzen_T.PNG"},{"id":"asra_m014","name":"M014 – PSA benutzen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: PSA benutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M014_Kopfschutzbenutzen_T.PNG"},{"id":"asra_m015","name":"M015 – M015 Warnwestebenutzen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: M015 Warnwestebenutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M015_Warnwestebenutzen_T.PNG"},{"id":"asra_m017","name":"M017 – Nur Fußgänger","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Nur Fußgänger","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M017_Atemschutzbenutzen_T.PNG"},{"id":"asra_m018","name":"M018 – Treppen benutzen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Treppen benutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M018_Auffanggurt_benutzen_T.PNG"},{"id":"asra_m020","name":"M020 – Sicherheitsgurt","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Sicherheitsgurt","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M020_Rueckhaltesystembenutzen_T.PNG"},{"id":"asra_m021","name":"M021 – M021 VorWartoderRep freischalten","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: M021 VorWartoderRep freischalten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M021_VorWartoderRep_freischalten_T.PNG"},{"id":"asra_m022","name":"M022 – M022 Hautschutzmittelbenutzen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: M022 Hautschutzmittelbenutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M022_Hautschutzmittelbenutzen_T.PNG"},{"id":"asra_m023","name":"M023 – M023 Uebergangbenutzen","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: M023 Uebergangbenutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M023_Uebergangbenutzen_T.PNG"},{"id":"asra_m024","name":"M024 – M024 Fussgaengerweg benutzen T.png","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: M024 Fussgaengerweg benutzen T.png","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M024_Fussgaengerweg_benutzen_T.png"},{"id":"asra_m026","name":"M026 – Handschutz","cat":"🔵 Gebotszeichen","signal":"Blau/Weiß","desc":"ASR A1.3 / ISO 7010: Handschutz","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Gebotszeichen/M026_Schutzschuerzebenutzen_T.PNG"},{"id":"asra_e001","name":"E001 – Erste Hilfe","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Erste Hilfe","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E001_Notausganglinks_T.PNG"},{"id":"asra_e002","name":"E002 – Rettungsleiter","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Rettungsleiter","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E002_Notausgangrechts_T.PNG"},{"id":"asra_e003","name":"E003 – Notausgang","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Notausgang","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E003_ErsteHilfe_T.PNG"},{"id":"asra_e004","name":"E004 – Sammelstelle","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Sammelstelle","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E004_Notruftelefon_T.PNG"},{"id":"asra_e007","name":"E007 – Pfeilrichtung","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Pfeilrichtung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E007_Sammelstelle_T.PNG"},{"id":"asra_e009","name":"E009 – Verbandkasten","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Verbandkasten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E009_Arzt_T.PNG"},{"id":"asra_e010","name":"E010 – Notdusche","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Notdusche","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E010_AutomExtDefibrillator_T.PNG"},{"id":"asra_e011","name":"E011 – Augenspülung","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Augenspülung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E011_Augenspueleinrichtung_T.PNG"},{"id":"asra_e012","name":"E012 – Notruf","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Notruf","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E012_Notdusche_T.PNG"},{"id":"asra_e013","name":"E013 – E013 Krankentrage","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: E013 Krankentrage","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E013_Krankentrage_T.PNG"},{"id":"asra_e016","name":"E016 – E016 NotausstiegmFluchtleiter","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: E016 NotausstiegmFluchtleiter","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E016_NotausstiegmFluchtleiter_T.PNG"},{"id":"asra_e019","name":"E019 – E019 Notausstieg","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: E019 Notausstieg","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E019_Notausstieg_T.PNG"},{"id":"asra_e033","name":"E033 – E033 Schiebetueroeffnetnachrechts","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: E033 Schiebetueroeffnetnachrechts","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E033_Schiebetueroeffnetnachrechts_T.PNG"},{"id":"asra_e034","name":"E034 – E034 Schiebetueroeffnetnachlinks","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: E034 Schiebetueroeffnetnachlinks","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E034_Schiebetueroeffnetnachlinks_T.PNG"},{"id":"asra_e061","name":"E061 – E061 Wasser-Rettungsausruestung","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: E061 Wasser-Rettungsausruestung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/E061_Wasser-Rettungsausruestung_T.PNG"},{"id":"asra_notausgangmitpfeilrechts","name":"NotausgangmitPfeilrechts – NotausgangmitPfeilrechts","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: NotausgangmitPfeilrechts","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/NotausgangmitPfeilrechts_T.PNG"},{"id":"asra_notausgangmitpfeilrechtsunten","name":"NotausgangmitPfeilrechtsunten – NotausgangmitPfeilrechtsunten","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: NotausgangmitPfeilrechtsunten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/NotausgangmitPfeilrechtsunten_T.PNG"},{"id":"asra_richtungspfeil","name":"Richtungspfeil – Richtungspfeil links T.png","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Richtungspfeil links T.png","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/Richtungspfeil_links_T.png"},{"id":"asra_richtungspfeil","name":"Richtungspfeil – Richtungspfeil rechtsunten","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Richtungspfeil rechtsunten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/Richtungspfeil_rechtsunten_T.PNG"},{"id":"asra_richtungspfeil","name":"Richtungspfeil – Richtungspfeil unten","cat":"🟢 Rettungszeichen","signal":"Grün/Weiß","desc":"ASR A1.3 / ISO 7010: Richtungspfeil unten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Rettungszeichen/Richtungspfeil_unten_T.PNG"},{"id":"asra_d-p006","name":"D-P006 – D-P006 ZutrittfuerUnbefugteverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: D-P006 ZutrittfuerUnbefugteverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/D-P006_ZutrittfuerUnbefugteverboten_T.PNG"},{"id":"asra_p001","name":"P001 – Zutritt verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Zutritt verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P001_AllgemeinesVerbotszeichen_T.PNG"},{"id":"asra_p002","name":"P002 – Rauchen verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Rauchen verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P002_Rauchenverboten_T.PNG"},{"id":"asra_p003","name":"P003 – Feuer/Rauchen verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Feuer/Rauchen verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P003_FeueroffLichtuRauchenverboten_T.PNG"},{"id":"asra_p004","name":"P004 – Fußgänger verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Fußgänger verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P004_FuerFussgaengerverboten_T.PNG"},{"id":"asra_p005","name":"P005 – Hunde verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Hunde verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P005_KeinTrinkwasser_T.PNG"},{"id":"asra_p006","name":"P006 – Wasser als Löscher verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Wasser als Löscher verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P006_FuerFlurfoerderzeugeverboten_T.PNG"},{"id":"asra_p007","name":"P007 – Trinkwasser verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Trinkwasser verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P007_VerbotmitHerzschrittmacher_T.PNG"},{"id":"asra_p009","name":"P009 – Mobiltelefon verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Mobiltelefon verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P009_Aufsteigenverboten_T.png"},{"id":"asra_p010","name":"P010 – Fotografieren verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Fotografieren verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P010_Beruehrenverboten_T.PNG"},{"id":"asra_p011","name":"P011 – Einfahrt verboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: Einfahrt verboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P011_MitWasserloeschenverboten_T.PNG"},{"id":"asra_p012","name":"P012 – P012 KeineschwerenLasten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P012 KeineschwerenLasten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P012_KeineschwerenLasten_T.PNG"},{"id":"asra_p013","name":"P013 – P013 EingeschMobiltelefoneverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P013 EingeschMobiltelefoneverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P013_EingeschMobiltelefoneverboten_T.PNG"},{"id":"asra_p014","name":"P014 – P014 KeinZutrittImplantateausMetall T.png","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P014 KeinZutrittImplantateausMetall T.png","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P014_KeinZutrittImplantateausMetall_T.png"},{"id":"asra_p015","name":"P015 – P015 Hineinfassenverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P015 Hineinfassenverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P015_Hineinfassenverboten_T.PNG"},{"id":"asra_p016","name":"P016 – P016 MitWasserspritzenverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P016 MitWasserspritzenverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P016_MitWasserspritzenverboten_T.PNG"},{"id":"asra_p020","name":"P020 – P020 AufzugimBrandfallnichtbenutzen","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P020 AufzugimBrandfallnichtbenutzen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P020_AufzugimBrandfallnichtbenutzen_T.PNG"},{"id":"asra_p021","name":"P021 – P021 MitfuehrenvonTierenverboten T.png","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P021 MitfuehrenvonTierenverboten T.png","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P021_MitfuehrenvonTierenverboten_T.png"},{"id":"asra_p022","name":"P022 – P022 EssenundTrinkenverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P022 EssenundTrinkenverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P022_EssenundTrinkenverboten_T.PNG"},{"id":"asra_p023","name":"P023 – P023 AbstellenoderLagernverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P023 AbstellenoderLagernverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P023_AbstellenoderLagernverboten_T.PNG"},{"id":"asra_p024","name":"P024 – P024 BetretenderFlaecheverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P024 BetretenderFlaecheverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P024_BetretenderFlaecheverboten_T.PNG"},{"id":"asra_p027","name":"P027 – P027 Personenbefoerderungverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P027 Personenbefoerderungverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P027_Personenbefoerderungverboten_T.PNG"},{"id":"asra_p028","name":"P028 – P028 BenutzenvonHandschuhenverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P028 BenutzenvonHandschuhenverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P028_BenutzenvonHandschuhenverboten_T.PNG"},{"id":"asra_p031","name":"P031 – P031 Schaltenverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P031 Schaltenverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P031_Schaltenverboten_T.PNG"},{"id":"asra_p048","name":"P048 – P048 Laufenverboten","cat":"🚫 Verbotszeichen","signal":"Rot/Weiß","desc":"ASR A1.3 / ISO 7010: P048 Laufenverboten","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Verbotszeichen/P048_Laufenverboten_T.PNG"},{"id":"asra_d-w021","name":"D-W021 – D-W021 WarnungvorexplAtmosphaere","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: D-W021 WarnungvorexplAtmosphaere","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/D-W021_WarnungvorexplAtmosphaere_T.PNG"},{"id":"asra_w001","name":"W001 – Allg. Warnung","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Allg. Warnung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W001_AllgemeinesWarnzeichen_T.PNG"},{"id":"asra_w002","name":"W002 – Explosive Stoffe","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Explosive Stoffe","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W002_WarnungvorexplStoffen_T.PNG"},{"id":"asra_w003","name":"W003 – Druckbehälter","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Druckbehälter","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W003_WarnungradioaktivStoffeodionStrahlung_T.PNG"},{"id":"asra_w004","name":"W004 – Feuergefährlich","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Feuergefährlich","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W004_WarnungvorLaserstrahl_T.PNG"},{"id":"asra_w005","name":"W005 – Oxidierende Stoffe","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Oxidierende Stoffe","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W005_WarnungvornichtionStrahlung_T.PNG"},{"id":"asra_w006","name":"W006 – Giftige Stoffe","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Giftige Stoffe","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W006_WarnungvormagnetischemFeld_T.PNG"},{"id":"asra_w007","name":"W007 – Ätzende Stoffe","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Ätzende Stoffe","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W007_WarnungvorHindernissenamBoden_T.PNG"},{"id":"asra_w008","name":"W008 – Radioaktiv","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Radioaktiv","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W008_WarnungvorAbsturzgefahr_T.PNG"},{"id":"asra_w009","name":"W009 – Elektromagnetisch","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Elektromagnetisch","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W009_WarnungvorBiogefaehrdung_T.PNG"},{"id":"asra_w010","name":"W010 – Laserstrahl","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Laserstrahl","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W010_WarnungvorniedrTempFrost_T.PNG"},{"id":"asra_w011","name":"W011 – Biogefährdung","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Biogefährdung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W011_WarnungvorRutschgefahr_T.PNG"},{"id":"asra_w012","name":"W012 – Elektr. Spannung","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Elektr. Spannung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W012_WarnungvorelektrischerSpannung_T.PNG"},{"id":"asra_w014","name":"W014 – Elektrisches Feld","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Elektrisches Feld","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W014_WarnungvorFlurfoerderzeugen_T.PNG"},{"id":"asra_w015","name":"W015 – Röntgenstrahlen","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Röntgenstrahlen","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W015_WarnungvorschwebenderLast_T.PNG"},{"id":"asra_w016","name":"W016 – Schwebende Last","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Schwebende Last","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W016_WarnungvorgiftigenStoffen_T.PNG"},{"id":"asra_w017","name":"W017 – Gabelstapler","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Gabelstapler","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W017_WarnungvorheisserOberflaeche_T.PNG"},{"id":"asra_w018","name":"W018 – Absturzgefahr","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Absturzgefahr","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W018_WarnungvorautomatischemAnlauf_T.PNG"},{"id":"asra_w019","name":"W019 – Rutschgefahr","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Rutschgefahr","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W019_WarnungvorQuetschgefahr_T.PNG"},{"id":"asra_w021","name":"W021 – Schneidgefahr","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Schneidgefahr","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W021_WarnungvorfeuergefStoffen_T.PNG"},{"id":"asra_w023","name":"W023 – Hindernis","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Hindernis","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W023_WarnungvoraetzendenStoffen_T.PNG"},{"id":"asra_w024","name":"W024 – Magnetfeld","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Magnetfeld","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W024_WarnungvorHandverletzungen_T.PNG"},{"id":"asra_w025","name":"W025 – Handverletzung","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Handverletzung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W025_WarnungvorgegenlaeufigenRollen_T.PNG"},{"id":"asra_w026","name":"W026 – Durchschneidung","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Durchschneidung","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W026_WarnungvorGefahrenAufladenBatterien_T.PNG"},{"id":"asra_w027","name":"W027 – Stolpergefahr","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Stolpergefahr","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W027_WarnungvoroptischerStrahlung_T.PNG"},{"id":"asra_w028","name":"W028 – Explosionsgefahr","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Explosionsgefahr","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W028_WarnungvorbrandfoerderndenStoffen_T.PNG"},{"id":"asra_w029","name":"W029 – Ätzend","cat":"⚠️ Warnzeichen","signal":"Gelb/Schwarz","desc":"ASR A1.3 / ISO 7010: Ätzend","schutz":"","img":"https://emsland3dfab.shop/wp-content/uploads/gefahrstoffe/asra13/Warnzeichen/W029_WarnungvorGasflaschen_T.PNG"}];
+var sel=null,_q='';
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function shortN(name){
+  return name.replace(/^[A-Z]+\d+[a-z]?\s*[\u2013-]\s*/,'').replace(/\s*\(Gefahr.*?\)/g,'').trim();
+}
+
+function render(items){
+  var groups={};
+  items.forEach(function(d){groups[d.cat]=groups[d.cat]||[];groups[d.cat].push(d);});
+  var html='';
+  Object.keys(groups).forEach(function(cat){
+    html+='<div class="cat-hdr">'+esc(cat)+' &mdash; '+groups[cat].length+' Zeichen</div><div class="grid">';
+    groups[cat].forEach(function(d){
+      var sid=encodeURIComponent(d.id);
+      html+='<div class="card'+(sel===d.id?' sel':'')+'" onclick="pick(decodeURIComponent(\''+sid+'\'))">'+
+        '<img src="'+esc(d.img)+'" alt="" loading="lazy" onerror="this.style.opacity=.3">'+
+        '<div class="cname">'+esc(shortN(d.name))+'</div></div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('content').innerHTML=html;
+  document.getElementById('cnt').textContent=items.length+' Eintr\u00e4ge';
+}
+
+function pick(id){
+  sel=id;
+  var d=DATA.find(function(x){return x.id===id;});
+  if(!d)return;
+  render(currentItems());
+  document.getElementById('det-empty').style.display='none';
+  var full=document.getElementById('det-full');
+  full.style.display='flex';
+  document.getElementById('det-img').src=d.img;
+  document.getElementById('det-name').textContent=d.name;
+  document.getElementById('det-cat').textContent=d.cat;
+  var sig=document.getElementById('det-signal');
+  if(d.signal){sig.textContent='Signal: '+d.signal;sig.style.display='block';}
+  else sig.style.display='none';
+  document.getElementById('det-desc').textContent=d.desc||'';
+  var sc=document.getElementById('det-schutz');
+  if(d.schutz){sc.style.display='block';sc.textContent='\u2705 '+d.schutz;}
+  else sc.style.display='none';
+}
+
+function currentItems(){
+  if(!_q)return DATA;
+  var s=_q.toLowerCase();
+  return DATA.filter(function(d){
+    return d.name.toLowerCase().includes(s)||d.cat.toLowerCase().includes(s)||
+      (d.desc||'').toLowerCase().includes(s)||(d.signal||'').toLowerCase().includes(s);
+  });
+}
+function search(q){_q=q;render(currentItems());}
+
+render(DATA);
+
+
+function gestisSearch(){
+  var q=document.getElementById('gestis-input').value.trim();
+  if(!q)return;
+  // Prüfe ob CAS-Nummer (Format: XXXXXX-XX-X)
+  var isCAS=/^\d{2,7}-\d{2}-\d$/.test(q);
+  var url;
+  if(isCAS){
+    url='https://gestis.dguv.de/search?cas='+encodeURIComponent(q);
+  } else {
+    url='https://gestis.dguv.de/search?name='+encodeURIComponent(q);
+  }
+  window.open(url,'_blank','noopener');
+}
+
+// Detail-Ansicht: GESTIS-Link hinzufügen
+var _origPick=window.pick;
+window.pick=function(id){
+  _origPick(id);
+  // GESTIS-Suchfeld mit Stoffname befüllen
+  var d=DATA.find(function(x){return x.id===id;});
+  if(d){
+    var cleanName=d.name
+      .replace(/^[A-Z]{1,4}[0-9]{1,4}[a-z]?\s*[–\-]\s*/,'')
+      .replace(/\s*\(Gefahr.*?\)/g,'')
+      .replace(/_T$/,'').trim();
+    document.getElementById('gestis-input').value=cleanName;
+    
+    // GESTIS-Link direkt in Detail-Panel einbauen
+    var sc=document.getElementById('det-schutz');
+    if(sc){
+      // Link ans Ende des Panels
+      var existing=document.getElementById('det-gestis-link');
+      if(!existing){
+        var lnk=document.createElement('a');
+        lnk.id='det-gestis-link';
+        lnk.style.cssText='display:block;margin-top:.4rem;font-size:.7rem;color:#4a6080;text-decoration:none;';
+        lnk.textContent='🔬 In GESTIS-Datenbank nachschlagen →';
+        lnk.onmouseover=function(){this.style.color='#e85d04';};
+        lnk.onmouseout=function(){this.style.color='#4a6080';};
+        document.getElementById('det-info-wrap').after(lnk);
+      }
+      var glink=document.getElementById('det-gestis-link');
+      if(glink){
+        var gurl='https://gestis.dguv.de/search?name='+encodeURIComponent(cleanName);
+        glink.href=gurl;
+        glink.target='_blank';
+        glink.rel='noopener';
+      }
+    }
+  }
+};
+
+
+// ============================================================
+// H/P-SATZ NACHSCHLAGEWERK (offline, CLP-Verordnung EU 1272/2008)
+// ============================================================
+var HP_DATA={"h":{"H200":"Instabil, explosiv","H201":"Explosiv, Gefahr der Massenexplosion","H202":"Explosiv; große Gefahr durch Splitter, Spreng- und Wurfstücke","H203":"Explosiv; Gefahr durch Feuer, Luftdruck oder Splitter","H204":"Gefahr durch Feuer oder Splitter","H205":"Gefahr der Massenexplosion bei Feuer","H220":"Extrem entzündbares Gas","H221":"Entzündbares Gas","H222":"Extrem entzündbares Aerosol","H223":"Entzündbares Aerosol","H224":"Flüssigkeit und Dampf extrem entzündbar","H225":"Flüssigkeit und Dampf leicht entzündbar","H226":"Flüssigkeit und Dampf entzündbar","H227":"Entzündbare Flüssigkeit","H228":"Entzündbarer Feststoff","H229":"Behälter steht unter Druck","H230":"Kann auch ohne Luft explosionsartig reagieren","H231":"Kann auch ohne Luft bei erhöhtem Druck und/oder erhöhter Temperatur explosionsartig reagieren","H240":"Erwärmung kann Explosion verursachen","H241":"Erwärmung kann Brand oder Explosion verursachen","H242":"Erwärmung kann Brand verursachen","H250":"Entzündet sich in Berührung mit Luft von selbst","H251":"Selbsterhitzungsfähig in großen Mengen; kann in Brand geraten","H252":"Selbsterhitzungsfähig in großen Mengen; kann in Brand geraten","H260":"Bei Berührung mit Wasser entstehen entzündbare Gase, die sich spontan entzünden können","H261":"Bei Berührung mit Wasser entstehen entzündbare Gase","H270":"Kann Brand verursachen oder verstärken; Oxidationsmittel","H271":"Kann Brand oder Explosion verursachen; starkes Oxidationsmittel","H272":"Kann Brand verstärken; Oxidationsmittel","H280":"Enthält Gas unter Druck; kann bei Erwärmung explodieren","H281":"Enthält tiefgekühltes Gas; kann Tieftemperaturverbrennung oder -verletzung verursachen","H290":"Kann gegenüber Metallen korrosiv sein","H300":"Giftig bei Verschlucken","H301":"Giftig bei Verschlucken","H302":"Gesundheitsschädlich bei Verschlucken","H303":"Kann bei Verschlucken schädlich sein","H304":"Kann bei Verschlucken und Eindringen in die Atemwege tödlich sein","H310":"Giftig bei Hautkontakt","H311":"Giftig bei Hautkontakt","H312":"Gesundheitsschädlich bei Hautkontakt","H314":"Verursacht schwere Verätzungen der Haut und schwere Augenschäden","H315":"Verursacht Hautreizungen","H316":"Verursacht leichte Hautreizungen","H317":"Kann allergische Hautreaktionen verursachen","H318":"Verursacht schwere Augenschäden","H319":"Verursacht schwere Augenreizung","H320":"Verursacht Augenreizung","H330":"Giftig bei Einatmen","H331":"Giftig bei Einatmen","H332":"Gesundheitsschädlich bei Einatmen","H333":"Kann bei Einatmen schädlich sein","H334":"Kann bei Einatmen Allergie, asthmaartige Symptome oder Atembeschwerden verursachen","H335":"Kann die Atemwege reizen","H336":"Kann Schläfrigkeit und Benommenheit verursachen","H340":"Kann genetische Defekte verursachen","H341":"Kann vermutlich genetische Defekte verursachen","H350":"Kann Krebs erzeugen","H351":"Kann vermutlich Krebs erzeugen","H360":"Kann die Fruchtbarkeit beeinträchtigen oder das Kind im Mutterleib schädigen","H361":"Kann vermutlich die Fruchtbarkeit beeinträchtigen oder das Kind im Mutterleib schädigen","H362":"Kann Säuglinge über die Muttermilch schädigen","H370":"Schädigt die Organe","H371":"Kann die Organe schädigen","H372":"Schädigt die Organe bei längerer oder wiederholter Exposition","H373":"Kann die Organe schädigen bei längerer oder wiederholter Exposition","H400":"Sehr giftig für Wasserorganismen","H401":"Giftig für Wasserorganismen","H402":"Schädlich für Wasserorganismen","H410":"Sehr giftig für Wasserorganismen mit langfristiger Wirkung","H411":"Giftig für Wasserorganismen mit langfristiger Wirkung","H412":"Schädlich für Wasserorganismen mit langfristiger Wirkung","H413":"Kann für Wasserorganismen schädlich sein mit langfristiger Wirkung","H420":"Schädigt die öffentliche Gesundheit und die Umwelt durch Ozonabbau"},"p":{"P101":"Ist ärztlicher Rat erforderlich, Verpackung oder Kennzeichnungsetikett bereithalten","P102":"Darf nicht in die Hände von Kindern gelangen","P103":"Vor Gebrauch Kennzeichnungsetikett lesen","P201":"Vor Gebrauch besondere Anweisungen einholen","P202":"Vor Gebrauch alle Sicherheitshinweise lesen und verstehen","P210":"Von Hitze, heißen Oberflächen, Funken, offenen Flammen und anderen Zündquellen fernhalten","P211":"Nicht gegen offene Flamme oder andere Zündquelle sprühen","P220":"Von Kleidung und anderen brennbaren Materialien fernhalten","P221":"Mischen mit brennbaren Stoffen/Materialien vermeiden","P222":"Kontakt mit Luft nicht zulassen","P223":"Kontakt mit Wasser vermeiden","P230":"Feucht halten mit...","P231":"Unter inertem Gas handhaben und lagern","P232":"Vor Feuchtigkeit schützen","P233":"Behälter dicht verschlossen halten","P234":"Nur im Originalbehälter aufbewahren","P235":"Kühl halten","P240":"Behälter und zu befüllende Anlage erden","P241":"Explosionsgeschützte elektrische Betriebsmittel verwenden","P242":"Nur funkenloses Werkzeug verwenden","P243":"Maßnahmen gegen elektrostatische Aufladung treffen","P244":"Druckminderer frei von Fett und Öl halten","P250":"Nicht schleifen/stoßen/reiben","P251":"Nicht durchstechen oder verbrennen, auch nicht nach Gebrauch","P260":"Staub/Rauch/Gas/Nebel/Dampf/Aerosol nicht einatmen","P261":"Einatmen von Staub/Rauch/Gas/Nebel/Dampf/Aerosol vermeiden","P262":"Kontakt mit den Augen, der Haut oder der Kleidung vermeiden","P263":"Kontakt während der Schwangerschaft und Stillzeit vermeiden","P264":"Nach Gebrauch gründlich waschen","P270":"Bei Gebrauch nicht essen, trinken oder rauchen","P271":"Nur im Freien oder in gut belüfteten Räumen verwenden","P272":"Kontaminierte Arbeitskleidung nicht außerhalb des Arbeitsplatzes tragen","P273":"Freisetzung in die Umwelt vermeiden","P280":"Schutzhandschuhe/Schutzkleidung/Augenschutz/Gesichtsschutz tragen","P284":"Bei unzureichender Belüftung Atemschutz tragen","P285":"Bei unzureichender Belüftung Atemschutz tragen","P301":"BEI VERSCHLUCKEN:","P302":"BEI BERÜHRUNG MIT DER HAUT:","P303":"BEI BERÜHRUNG MIT DER HAUT (oder dem Haar):","P304":"BEI EINATMEN:","P305":"BEI KONTAKT MIT DEN AUGEN:","P306":"BEI KONTAKT MIT DER KLEIDUNG:","P308":"Bei Exposition oder falls betroffen:","P310":"Sofort GIFTINFORMATIONSZENTRUM/Arzt anrufen","P311":"GIFTINFORMATIONSZENTRUM/Arzt anrufen","P312":"Bei Unwohlsein GIFTINFORMATIONSZENTRUM/Arzt anrufen","P313":"Ärztlichen Rat einholen","P314":"Bei Unwohlsein ärztlichen Rat einholen","P315":"Sofort ärztlichen Rat einholen","P320":"Besondere Behandlung dringend erforderlich (siehe ... auf diesem Kennzeichnungsetikett)","P321":"Besondere Behandlung (siehe ... auf diesem Kennzeichnungsetikett)","P330":"Mund ausspülen","P331":"KEIN Erbrechen herbeiführen","P332":"Bei Hautreizung:","P333":"Bei Hautreizung oder -ausschlag:","P334":"In kaltes Wasser tauchen oder nassen Verband anlegen","P335":"Lose Partikel von der Haut abbürsten","P336":"Vereiste Bereiche mit lauwarmem Wasser auftauen","P337":"Bei anhaltender Augenreizung:","P338":"Eventuell vorhandene Kontaktlinsen nach Möglichkeit entfernen","P340":"Die betroffene Person an die frische Luft bringen und in einer Position ruhigstellen","P342":"Bei Symptomen der Atemwege:","P351":"Einige Minuten lang behutsam mit Wasser ausspülen","P352":"Mit viel Wasser waschen","P353":"Haut mit Wasser abwaschen","P360":"Kontaminierte Kleidung und Haut sofort mit viel Wasser abwaschen","P361":"Alle kontaminierten Kleidungsstücke sofort ausziehen","P362":"Kontaminierte Kleidung ausziehen","P363":"Kontaminierte Kleidung vor erneutem Tragen waschen","P370":"Bei Brand:","P371":"Bei Brand und großen Mengen:","P372":"Explosionsgefahr bei Brand","P373":"KEIN Löschwasser verwenden","P374":"Brand mit normalen Vorkehrungen aus angemessener Entfernung bekämpfen","P375":"Wegen Explosionsgefahr Brand aus der Entfernung bekämpfen","P376":"Undichtigkeit beseitigen, wenn gefahrlos möglich","P377":"Brand von ausströmendem Gas: Nicht löschen, wenn Undichtigkeit nicht gefahrlos beseitigt werden kann","P378":"Für Löschung verwenden:","P380":"Umgebung räumen","P381":"Bei Undichtigkeiten alle Zündquellen entfernen","P390":"Verschüttete Mengen aufnehmen, um Materialschäden zu vermeiden","P391":"Verschüttete Mengen aufnehmen","P401":"Gemäß ... lagern","P402":"An einem trockenen Ort aufbewahren","P403":"An einem gut belüfteten Ort aufbewahren","P404":"In einem geschlossenen Behälter aufbewahren","P405":"Unter Verschluss aufbewahren","P406":"In korrosionsbeständigem Behälter lagern","P407":"Luftspalt zwischen Stapeln/Paletten lassen","P410":"Vor Sonnenbestrahlung schützen","P411":"Bei Temperaturen nicht über ... lagern","P412":"Nicht Temperaturen über 50°C aussetzen","P413":"Schüttgut in Mengen von mehr als ... kg bei Temperaturen nicht über ... lagern","P420":"Getrennt aufbewahren","P501":"Inhalt/Behälter zuführen...","P502":"Hersteller/Lieferanten für Informationen zur Rückgewinnung/Recycling befragen"}};
+var hpTab='H', hpPanelOpen=false;
+
+function toggleHPPanel(){
+  hpPanelOpen=!hpPanelOpen;
+  var panel=document.getElementById('hp-panel');
+  var body=document.getElementById('body');
+  panel.classList.toggle('open',hpPanelOpen);
+  body.classList.toggle('hp-open',hpPanelOpen);
+  if(hpPanelOpen){hpRender('');document.getElementById('hp-input').focus();}
+}
+
+function hpSetTab(t,btn){
+  hpTab=t;
+  document.querySelectorAll('.hp-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  hpRender(document.getElementById('hp-input').value);
+}
+
+function hpSearch(q){hpRender(q);}
+
+function hpRender(q){
+  var list=document.getElementById('hp-list');
+  q=(q||'').toLowerCase().trim();
+  var items=[];
+  
+  // H-Sätze
+  if(hpTab==='H'||hpTab==='ALL'){
+    Object.keys(HP_DATA.h).forEach(function(code){
+      var txt=HP_DATA.h[code];
+      if(!q||code.toLowerCase().includes(q)||txt.toLowerCase().includes(q)){
+        items.push({code:code,txt:txt,type:'H'});
+      }
+    });
+  }
+  // P-Sätze
+  if(hpTab==='P'||hpTab==='ALL'){
+    Object.keys(HP_DATA.p).forEach(function(code){
+      var txt=HP_DATA.p[code];
+      if(!q||code.toLowerCase().includes(q)||txt.toLowerCase().includes(q)){
+        items.push({code:code,txt:txt,type:'P'});
+      }
+    });
+  }
+  
+  // Sortieren
+  items.sort(function(a,b){
+    var na=parseInt(a.code.replace(/\D/g,''));
+    var nb=parseInt(b.code.replace(/\D/g,''));
+    return na-nb;
+  });
+  
+  // HTML
+  var html='';
+  if(!items.length){
+    html='<div style="color:#3a5070;font-size:.72rem;text-align:center;margin-top:1rem">Keine Treffer</div>';
+  }
+  items.forEach(function(item){
+    // Treffer hervorheben
+    var txt=item.txt;
+    if(q&&q.length>1){
+      var re2=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+      txt=txt.replace(re2,'<mark style="background:rgba(232,93,4,.25);color:#e85d04;border-radius:2px">$1</mark>');
+    }
+    html+='<div class="hp-item" onclick="hpShowDetail(\''+item.code+'\')">'+
+      '<div class="hp-code '+item.type+'">'+item.code+'</div>'+
+      '<div class="hp-text">'+txt+'</div>'+
+      '</div>';
+  });
+  list.innerHTML=html;
+}
+
+function hpShowDetail(code){
+  var txt=(HP_DATA.h[code]||HP_DATA.p[code]||'');
+  var type=code.startsWith('H')?'H':'P';
+  document.getElementById('hp-det-code').textContent=code;
+  document.getElementById('hp-det-code').className='hp-code '+type;
+  document.getElementById('hp-det-text').textContent=txt;
+  document.getElementById('hp-detail').style.display='block';
+  // In Zwischenablage kopieren
+  navigator.clipboard.writeText(code+': '+txt).catch(function(){});
+}
+
+// Beim Klick auf ein Zeichen: H-Sätze aus info befüllen
+var _origPickGF=window.pick;
+window.pick=function(id){
+  _origPickGF(id);
+  // H-Satz aus Info extrahieren falls vorhanden
+  var d=DATA.find(function(x){return x.id===id;});
+  if(d&&d.info){
+    var signal=d.info['Signal']||'';
+    if(signal&&hpPanelOpen){
+      // Passende H-Sätze anzeigen
+      var searchterm=d.name.replace(/^[A-Z]+\d+\s*[–-]\s*/,'').replace(/\s*\(.*?\)/g,'').trim();
+      document.getElementById('hp-input').value=searchterm;
+      hpRender(searchterm);
+    }
+  }
+};
+
+// Initial rendern wenn Panel geöffnet wird
+if(hpPanelOpen) hpRender('');
+
+</script>
+
+<div id="hp-panel">
+  <div id="hp-hdr">
+    <h3>📋 H/P-Sätze offline</h3>
+    <span style="font-size:.62rem;color:#4a6080">CLP-Verordnung EU 1272/2008</span>
+    <button id="hp-close" onclick="toggleHPPanel()">✕</button>
+  </div>
+  <div id="hp-search-wrap">
+    <input id="hp-input" placeholder="H200, P260, Einatmen... (Enter=Suchen)"
+      oninput="hpSearch(this.value)" onkeydown="if(event.key==='Escape')toggleHPPanel()">
+  </div>
+  <div id="hp-tabs">
+    <div class="hp-tab active" onclick="hpSetTab('H',this)">⚠️ H-Sätze (73)</div>
+    <div class="hp-tab" onclick="hpSetTab('P',this)">🛡️ P-Sätze (96)</div>
+    <div class="hp-tab" onclick="hpSetTab('ALL',this)">🔍 Alle</div>
+  </div>
+  <div id="hp-list"></div>
+  <div id="hp-detail">
+    <div class="hp-code" id="hp-det-code"></div>
+    <div class="hp-text" id="hp-det-text"></div>
+    <div id="hp-gestis-hint">
+      Vollständige Sicherheitsdaten: 
+      <a href="https://gestis.dguv.de/" target="_blank" rel="noopener">gestis.dguv.de ↗</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

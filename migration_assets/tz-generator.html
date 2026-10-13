@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taktische Zeichen Generator – DV 102</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#0a1628;color:#f0f4f8;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{background:#0f0f1a;border-bottom:2px solid #e85d04;padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+#hdr h1{font-size:.95rem;font-weight:800}#hdr h1 span{color:#e85d04}
+#hdr .badge{font-size:.68rem;background:rgba(232,93,4,.15);border:1px solid rgba(232,93,4,.3);color:#e85d04;padding:.15rem .5rem;border-radius:3px}
+#main{display:flex;flex:1;overflow:hidden}
+#builder{width:310px;flex-shrink:0;background:#0d1b2a;border-right:1px solid rgba(232,93,4,.2);overflow-y:auto;padding:.8rem}
+#builder::-webkit-scrollbar{width:4px}#builder::-webkit-scrollbar-thumb{background:#e85d04;border-radius:2px}
+.sec{margin-bottom:.9rem}
+.sec-t{font-size:.67rem;color:#e85d04;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:.38rem;padding-bottom:.22rem;border-bottom:1px solid rgba(232,93,4,.12)}
+.btn-g{display:flex;flex-wrap:wrap;gap:.22rem}
+.opt{background:#112240;border:1.5px solid rgba(232,93,4,.15);color:#c8d4e0;padding:.28rem .52rem;border-radius:4px;cursor:pointer;font-size:.74rem;font-weight:600;transition:all .12s;user-select:none;white-space:nowrap}
+.opt:hover{border-color:#e85d04;color:#fff;background:#1e3a5c}
+.opt.sel{background:#e85d04;border-color:#e85d04;color:#fff}
+.opt.none{border-style:dashed;opacity:.7}.opt.none.sel{opacity:1}
+select.fi,input.fi{width:100%;background:#112240;border:1.5px solid rgba(232,93,4,.18);color:#f0f4f8;border-radius:4px;padding:.35rem .55rem;font-size:.8rem;margin-bottom:.35rem}
+select.fi:focus,input.fi:focus{outline:none;border-color:#e85d04}
+input.fi::placeholder{color:#3a5070}
+#prev{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;gap:1rem;padding:1.5rem}
+#svg-box{background:white;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);padding:20px;min-width:120px;min-height:100px;display:flex;align-items:center;justify-content:center}
+#svg-box svg{display:block;max-width:220px;max-height:220px}
+#lbl{font-size:.8rem;color:#8ba0b4;text-align:center;max-width:300px;line-height:1.5}
+#err{font-size:.76rem;color:#ef4444;padding:.4rem .7rem;background:rgba(239,68,68,.08);border-radius:5px;display:none;margin-top:.3rem}
+#exp{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.eb{background:#1e3a5c;border:1px solid rgba(232,93,4,.3);color:#f0f4f8;padding:.42rem .9rem;border-radius:5px;cursor:pointer;font-size:.78rem;font-weight:700;transition:all .15s}
+.eb:hover{border-color:#e85d04;background:#2a4a6c}
+.eb.p{background:#e85d04;border-color:#e85d04;color:#fff}.eb.p:hover{background:#f97316}
+#lib{width:210px;flex-shrink:0;background:#0d1b2a;border-left:1px solid rgba(232,93,4,.2);overflow-y:auto;padding:.7rem}
+#lib::-webkit-scrollbar{width:4px}#lib::-webkit-scrollbar-thumb{background:#e85d04;border-radius:2px}
+#lib h3{font-size:.67rem;color:#e85d04;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:.5rem}
+.li{background:#112240;border:1px solid rgba(232,93,4,.1);border-radius:6px;padding:.4rem;cursor:pointer;display:flex;align-items:center;gap:.45rem;margin-bottom:.3rem;transition:all .12s}
+.li:hover{border-color:#e85d04;background:#1e3a5c}
+.ls{background:white;border-radius:3px;flex-shrink:0;overflow:hidden;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.ls svg{width:40px!important;height:40px!important}
+.ln{font-size:.68rem;color:#c8d4e0;line-height:1.3;flex:1;word-break:break-word}
+.ld{background:transparent;border:none;color:#ef4444;cursor:pointer;opacity:.35;padding:0;font-size:.82rem;flex-shrink:0}
+.ld:hover{opacity:1}
+#le{font-size:.72rem;color:#3a5070;text-align:center;padding:.8rem 0;line-height:1.6}
+#loading{font-size:.82rem;color:#8ba0b4;text-align:center}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>✏️ Taktische Zeichen <span>Generator</span></h1>
+  <span class="badge">DV 102 konform</span>
+  <span id="ver" style="font-size:.68rem;color:#4a6080"></span>
+</div>
+<div id="main">
+<div id="builder">
+  <div id="loading" style="padding:2rem;text-align:center">⏳ Lade Bibliothek...</div>
+</div>
+<div id="prev">
+  <div id="svg-box"><span style="color:#3a5070;font-size:.8rem">⏳ Wird geladen...</span></div>
+  <div id="lbl">–</div>
+  <div id="err"></div>
+  <div id="exp" style="display:none">
+    <button class="eb" onclick="dlSVG()">⬇ SVG</button>
+    <button class="eb" onclick="dlPNG()">⬇ PNG</button>
+    <button class="eb p" onclick="saveLib()">📌 Speichern</button>
+    <button class="eb" onclick="cpSVG()">📋 SVG kopieren</button>
+  </div>
+</div>
+<div id="lib">
+  <h3>📚 Bibliothek</h3>
+  <div id="lib-list"><div id="le">Noch keine Zeichen gespeichert.</div></div>
+</div>
+</div>
+<script type="importmap">
+{"imports":{"taktische-zeichen-core":"https://esm.run/taktische-zeichen-core@0.10.0"}}
+</script>
+<script type="module">
+import { erzeugeTaktischesZeichen, grundzeichen, organisationen, einheiten, fachaufgaben, verwaltungsstufen, symbole, funktionen } from 'taktische-zeichen-core';
+
+window.TZ = { erzeugeTaktischesZeichen, grundzeichen, organisationen, einheiten, fachaufgaben, verwaltungsstufen, symbole, funktionen: funktionen||[] };
+
+document.getElementById('ver').textContent = 'taktische-zeichen-core v0.10.0';
+
+var ST = {gz:'taktische-formation',org:'',fa:'',ein:'',vs:'',fn:'',sym:'',typ:'',name:'',text:'',orgname:''};
+var LIB = [];
+try{LIB=JSON.parse(localStorage.getItem('tzgen_v2'))||[];}catch(e){}
+
+function draw(){
+  var errEl=document.getElementById('err');
+  errEl.style.display='none';
+  var spec={skipFontRegistration:true};
+  if(ST.gz) spec.grundzeichen=ST.gz;
+  if(ST.org) spec.organisation=ST.org;
+  if(ST.fa) spec.fachaufgabe=ST.fa;
+  if(ST.ein) spec.einheit=ST.ein;
+  if(ST.vs) spec.verwaltungsstufe=ST.vs;
+  if(ST.fn) spec.funktion=ST.fn;
+  if(ST.sym&&!ST.gz) spec.symbol=ST.sym;
+  if(ST.typ) spec.typ=ST.typ;
+  if(ST.name) spec.name=ST.name;
+  if(ST.text) spec.text=ST.text;
+  if(ST.orgname) spec.organisationName=ST.orgname;
+  try{
+    var img=erzeugeTaktischesZeichen(spec);
+    var svgStr=img.toString();
+    window._lastSVG=svgStr; window._lastSpec=spec;
+    document.getElementById('svg-box').innerHTML=svgStr;
+    document.getElementById('lbl').textContent=getLabel();
+    document.getElementById('exp').style.display='flex';
+  }catch(e){
+    errEl.textContent='⚠ '+e.message;
+    errEl.style.display='block';
+  }
+}
+
+function getLabel(){
+  var p=[];
+  var gz2=grundzeichen.find(function(g){return g.id===ST.gz;});
+  var org2=organisationen.find(function(o){return o.id===ST.org;});
+  var fa2=fachaufgaben.find(function(f){return f.id===ST.fa;});
+  var ein2=einheiten.find(function(e){return e.id===ST.ein;});
+  if(gz2)p.push(gz2.label);
+  if(org2)p.push(org2.label);
+  if(fa2)p.push(fa2.label);
+  if(ein2)p.push(ein2.label);
+  if(ST.typ)p.push('"'+ST.typ+'"');
+  return p.join(' · ')||'–';
+}
+
+function grp(cId,key,items,hasNone){
+  var c=document.getElementById(cId);
+  c.querySelectorAll('.opt:not(.none)').forEach(function(b){b.remove();});
+  items.forEach(function(item){
+    var b=document.createElement('button');
+    b.className='opt'+(ST[key]===item.id?' sel':'');
+    b.dataset.v=item.id;
+    b.title=item.label;
+    b.textContent=item.label.length>20?item.label.substring(0,18)+'…':item.label;
+    if(key==='org'&&item.background){b.style.borderLeftColor=item.background;b.style.borderLeftWidth='4px';}
+    b.onclick=function(){c.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');ST[key]=item.id;draw();};
+    c.appendChild(b);
+  });
+  if(hasNone){
+    var none=c.querySelector('.none');
+    if(none)none.onclick=function(){c.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel');});none.classList.add('sel');ST[key]='';draw();};
+    if(ST[key]===''){var nn=c.querySelector('.none');if(nn){c.querySelectorAll('.opt').forEach(function(x){x.classList.remove('sel');});nn.classList.add('sel');}}
+  }
+  c.querySelectorAll('.opt:not(.none)').forEach(function(b){b.classList.toggle('sel',b.dataset.v===ST[key]);});
+}
+
+function msel(sId,key,items){
+  var sel=document.getElementById(sId);
+  while(sel.options.length>1)sel.remove(1);
+  items.forEach(function(item){var o=document.createElement('option');o.value=item.id;o.textContent=item.label;sel.appendChild(o);});
+  sel.value=ST[key]||'';
+  sel.onchange=function(){ST[key]=sel.value;draw();};
+}
+
+// Builder HTML aufbauen
+var bl=document.getElementById('builder');
+bl.innerHTML=`
+<div class="sec"><div class="sec-t">1. Grundzeichen</div><div class="btn-g" id="g-gz"></div></div>
+<div class="sec"><div class="sec-t">2. Organisation</div><div class="btn-g" id="g-org"><button class="opt none sel" data-v="">– keine –</button></div></div>
+<div class="sec"><div class="sec-t">3. Fachaufgabe</div><select class="fi" id="sel-fa"><option value="">– keine –</option></select></div>
+<div class="sec"><div class="sec-t">4. Einheit</div><div class="btn-g" id="g-ein"><button class="opt none sel" data-v="">–</button></div></div>
+<div class="sec"><div class="sec-t">5. Verwaltungsstufe</div><div class="btn-g" id="g-vs"><button class="opt none sel" data-v="">–</button></div></div>
+<div class="sec"><div class="sec-t">6. Funktion</div><div class="btn-g" id="g-fn"><button class="opt none sel" data-v="">–</button></div></div>
+<div class="sec"><div class="sec-t">7. Symbol (statt Fachaufgabe)</div><select class="fi" id="sel-sym"><option value="">– keins –</option></select></div>
+<div class="sec"><div class="sec-t">8. Texte</div>
+  <div style="font-size:.67rem;color:#8ba0b4;margin-bottom:.15rem">Typ (z.B. LF 20, RTW)</div>
+  <input class="fi" id="ti-typ" placeholder="Fahrzeugtyp / Bezeichnung" oninput="ST.typ=this.value;draw()">
+  <div style="font-size:.67rem;color:#8ba0b4;margin-bottom:.15rem">Name / Ort</div>
+  <input class="fi" id="ti-name" placeholder="z.B. FF Haselünne" oninput="ST.name=this.value;draw()">
+  <div style="font-size:.67rem;color:#8ba0b4;margin-bottom:.15rem">Freitext</div>
+  <input class="fi" id="ti-text" placeholder="Zusatzinfo" oninput="ST.text=this.value;draw()">
+  <div style="font-size:.67rem;color:#8ba0b4;margin-bottom:.15rem">Organisations-Name</div>
+  <input class="fi" id="ti-orgname" placeholder="z.B. FF Haselünne 1" oninput="ST.orgname=this.value;draw()">
+</div>
+`;
+
+grp('g-gz','gz',grundzeichen,false);
+var fb=document.querySelector('#g-gz .opt');
+if(fb&&!ST.gz){ST.gz=fb.dataset.v;fb.classList.add('sel');}
+grp('g-org','org',organisationen,true);
+grp('g-ein','ein',einheiten,true);
+grp('g-vs','vs',verwaltungsstufen,true);
+grp('g-fn','fn',window.TZ.funktionen||[],true);
+msel('sel-fa','fa',fachaufgaben);
+msel('sel-sym','sym',symbole);
+renderLib();draw();
+
+window.dlSVG=function(){if(!window._lastSVG)return;var b=new Blob([window._lastSVG],{type:'image/svg+xml'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='TZ_'+getLabel().replace(/[^\w]/g,'_')+'.svg';a.click();};
+window.dlPNG=function(){if(!window._lastSVG)return;var img2=new Image();img2.onload=function(){var c=document.createElement('canvas');c.width=img2.width||200;c.height=img2.height||150;var ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img2,0,0);var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='TZ_'+getLabel().replace(/[^\w]/g,'_')+'.png';a.click();};img2.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(window._lastSVG);};
+window.cpSVG=function(){if(window._lastSVG)navigator.clipboard.writeText(window._lastSVG).then(function(){toast('📋 SVG kopiert!');});};
+window.saveLib=function(){if(!window._lastSVG)return;LIB.unshift({id:Date.now(),lbl:getLabel(),svg:window._lastSVG});if(LIB.length>60)LIB.pop();try{localStorage.setItem('tzgen_v2',JSON.stringify(LIB));}catch(e){}renderLib();toast('✅ Gespeichert!');};
+
+function renderLib(){
+  var el=document.getElementById('lib-list');
+  el.querySelectorAll('.li').forEach(function(x){x.remove();});
+  var emp=document.getElementById('le');
+  if(!LIB.length){if(emp)emp.style.display='';return;}
+  if(emp)emp.style.display='none';
+  LIB.forEach(function(entry){
+    var d=document.createElement('div');d.className='li';
+    var ms=entry.svg.replace(/width="[\d.]+"/, 'width="40"').replace(/height="[\d.]+"/, 'height="40"');
+    d.innerHTML='<div class="ls">'+ms+'</div><span class="ln">'+entry.lbl+'</span><button class="ld">✕</button>';
+    d.querySelector('.ld').onclick=function(e){e.stopPropagation();LIB=LIB.filter(function(x){return x.id!==entry.id;});try{localStorage.setItem('tzgen_v2',JSON.stringify(LIB));}catch(e2){}renderLib();};
+    d.onclick=function(){document.getElementById('svg-box').innerHTML=entry.svg;document.getElementById('lbl').textContent=entry.lbl;window._lastSVG=entry.svg;};
+    el.appendChild(d);
+  });
+}
+function toast(msg){var t=document.createElement('div');t.innerHTML=msg;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0d1b2a;border:1px solid #e85d04;color:#f0f4f8;padding:.5rem 1.2rem;border-radius:8px;z-index:9999;font-size:.82rem;font-weight:700;white-space:nowrap';document.body.appendChild(t);setTimeout(function(){t.remove();},2200);}
+</script>
+</body>
+</html>
+

@@ -1,0 +1,7 @@
+option batch abort
+option confirm off
+open 46.224.174.244
+put -transfer=binary -nopermissions -preservetime "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf-offline-2.html" "/var/www/html/wp-content/uploads/2026/04/gf-offline-2.html"
+call chown www-data:www-data /var/www/html/wp-content/uploads/2026/04/gf-offline-2.html
+call chmod 644 /var/www/html/wp-content/uploads/2026/04/gf-offline-2.html
+exit

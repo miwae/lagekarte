@@ -1,0 +1,14 @@
+option batch abort
+option confirm off
+open wordpress02012026/a2031028@access-5019278847.webspace-host.com
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_001 Aetzend.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_002 Brandfoerdernd.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_003 Explosionsgefaehrlich.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_004 Gesundheitsschaedlich.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_005 Giftig.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_006 Hochentzuendlich.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_007 Leichtentzuendlich.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_008 Reizend.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_009 Sehr_Giftig_T.PNG" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+get "/uploads/gefahrstoffe/alt/Gefahrensymbol_alt_010 Umweltgefaehrlich.jpg" "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe\alt\"
+exit

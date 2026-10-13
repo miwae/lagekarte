@@ -1,0 +1,12 @@
+option batch abort
+option confirm off
+open 46.224.174.244
+mkdir "/var/www/html/wp-content/uploads/gefahrstoffe"
+mkdir "/var/www/html/wp-content/uploads/gefahrstoffe/alt"
+synchronize remote -criteria=size -transfer=binary -nopermissions -preservetime "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\2026\04" "/var/www/html/wp-content/uploads/2026/04"
+synchronize remote -criteria=size -transfer=binary -nopermissions -preservetime "C:\Users\miwae\Documents\GitHub\lagekarte\migration_assets\gf_assets\gefahrstoffe" "/var/www/html/wp-content/uploads/gefahrstoffe"
+call chown -R www-data:www-data /var/www/html/wp-content/uploads/gefahrstoffe /var/www/html/wp-content/uploads/2026/04
+call find /var/www/html/wp-content/uploads/gefahrstoffe -type d -exec chmod 755 {} \;
+call find /var/www/html/wp-content/uploads/gefahrstoffe -type f -exec chmod 644 {} \;
+call find /var/www/html/wp-content/uploads/2026/04 -maxdepth 1 -type f \( -name 'GHS_0*_gr.gif' -o -name 'gf-offline-2.html' \) -exec chmod 644 {} \;
+exit

@@ -41,10 +41,22 @@ ssh root@<server> 'apachectl configtest && systemctl reload apache2'
 scp deploy/wordpress/planungs-tool-hardening-mu-plugin.php root@<server>:/var/www/html/wp-content/mu-plugins/planungs-tool-hardening.php
 ```
 
+1b. Copy pages bootstrap plugin (Tool-Seiten + Uebersichtsseite):
+
+```bash
+scp deploy/wordpress/planungs-tool-pages-bootstrap.php root@<server>:/var/www/html/wp-content/mu-plugins/planungs-tool-pages-bootstrap.php
+```
+
 2. Ensure mu-plugins directory exists:
 
 ```bash
 ssh root@<server> 'mkdir -p /var/www/html/wp-content/mu-plugins && chown -R www-data:www-data /var/www/html/wp-content/mu-plugins'
+```
+
+3. Trigger page sync once (admin login required):
+
+```text
+Open https://planungs-tool.de/wp-admin/ once as administrator.
 ```
 
 ## 3) Verification checks
@@ -80,3 +92,4 @@ Expected:
 - `/?author=1` => redirect to `/`
 - `/xmlrpc.php` => 403
 - HSTS, nosniff, frame and referrer headers present on `/`
+- `/einsatz-tools/` returns 200 and links to tool subpages

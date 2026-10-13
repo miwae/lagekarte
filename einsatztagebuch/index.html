@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einsatztagebuch – KatSchutz Emsland</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ─── Header ─────────────────────────────────────────── */
+        header {
+            background: #16213e;
+            border-bottom: 3px solid #e94560;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        header h1 {
+            font-size: 1.3em;
+            color: #e94560;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        header .subtitle { font-size: 0.78em; color: #888; margin-top: 2px; }
+        #clock { font-size: 1.6em; font-weight: bold; font-variant-numeric: tabular-nums; }
+        #dateLabel { font-size: 0.78em; color: #aaa; text-align: right; margin-top: 2px; }
+
+        /* ─── Input-Toolbar ───────────────────────────────────── */
+        .toolbar {
+            background: #16213e;
+            padding: 8px 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #2a2a4a;
+            flex-shrink: 0;
+        }
+        .toolbar input,
+        .toolbar select {
+            background: #0f3460;
+            border: 1px solid #3a3a6a;
+            color: #e0e0e0;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.88em;
+            outline: none;
+        }
+        .toolbar input:focus,
+        .toolbar select:focus { border-color: #e94560; }
+
+        #inhaltInput { flex: 1; min-width: 200px; }
+
+        .toolbar button {
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.88em;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .btn-add    { background: #e94560; color: white; }
+        .btn-add:hover { background: #c73250; }
+        .btn-export { background: #0f3460; color: #e0e0e0; border: 1px solid #3a3a6a; }
+        .btn-export:hover { background: #1a4a80; }
+        .btn-print  { background: #1a4a30; color: #90ee90; border: 1px solid #2a6a40; }
+        .btn-print:hover { background: #246040; }
+        .btn-danger { background: #3a1a1a; color: #e94560; border: 1px solid #5a2a2a; }
+        .btn-danger:hover { background: #5a2020; }
+
+        /* ─── Einsatz-Info-Leiste ─────────────────────────────── */
+        .einsatz-bar {
+            background: #0f1c3a;
+            padding: 5px 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border-bottom: 1px solid #2a2a4a;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .einsatz-bar label { font-size: 0.78em; color: #888; }
+        .einsatz-bar input {
+            background: none;
+            border: none;
+            border-bottom: 1px dashed #3a3a6a;
+            color: #e0e0e0;
+            padding: 2px 4px;
+            font-size: 0.88em;
+            width: 180px;
+            outline: none;
+        }
+        .einsatz-bar input:focus { border-bottom-color: #e94560; }
+
+        /* ─── Tabelle ─────────────────────────────────────────── */
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86em;
+        }
+        thead th {
+            background: #0f3460;
+            color: #b0c8f0;
+            padding: 8px 10px;
+            text-align: left;
+            border: 1px solid #2a2a5a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 0.82em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tbody tr:nth-child(even) { background: #16213e; }
+        tbody tr:hover { background: #1a2a5e; }
+        tbody td {
+            padding: 7px 10px;
+            border: 1px solid #2a2a4a;
+            vertical-align: top;
+            line-height: 1.4;
+        }
+        .row-alarm { background: #2a0a0a !important; }
+        .row-alarm:hover { background: #3a1010 !important; }
+
+        /* ─── Badges ──────────────────────────────────────────── */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .b-meldung  { background: #1a4a1a; color: #90ee90; }
+        .b-auftrag  { background: #6b3a0f; color: #ffa07a; }
+        .b-info     { background: #1a3a5a; color: #87ceeb; }
+        .b-alarm    { background: #8b0000; color: #ff9090; animation: blink 1s step-end infinite; }
+        .b-lagemeld { background: #4a2a6a; color: #da90ff; }
+        .b-erledigt { background: #1a3a1a; color: #60b860; }
+
+        @keyframes blink { 50% { opacity: 0.4; } }
+
+        .del-btn {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 1em;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .del-btn:hover { color: #e94560; background: #2a0a0a; }
+
+        .erledigt-cb { cursor: pointer; width: 16px; height: 16px; accent-color: #e94560; }
+        .erledigt-row td { opacity: 0.55; text-decoration: line-through; }
+        .erledigt-row td:first-child,
+        .erledigt-row td:last-child { text-decoration: none; opacity: 1; }
+
+        /* ─── Statusbar ───────────────────────────────────────── */
+        .status-bar {
+            background: #111;
+            padding: 4px 20px;
+            font-size: 0.78em;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            flex-shrink: 0;
+            border-top: 1px solid #222;
+        }
+        #savedAt { color: #4a8a4a; }
+
+        /* ─── Druck-CSS ───────────────────────────────────────── */
+        @media print {
+            body { background: white; color: black; height: auto; overflow: visible; font-size: 10pt; }
+            .toolbar, .status-bar { display: none; }
+            header { background: white; border-color: #333; page-break-after: avoid; }
+            header h1 { color: #333; }
+            #clock, #dateLabel { display: none; }
+            .einsatz-bar { background: #f0f0f0; border-color: #ccc; padding: 6px 10px; }
+            .einsatz-bar input { color: black; border-bottom-color: #999; }
+            .table-container { overflow: visible; }
+            table { border-collapse: collapse; }
+            thead th { background: #ddd; color: #333; border-color: #999; }
+            tbody td { border-color: #ccc; }
+            tbody tr:nth-child(even) { background: #f9f9f9; }
+            .row-alarm { background: #ffe0e0 !important; }
+            .del-btn { display: none; }
+            .badge { border: 1px solid #999; color: #333 !important; background: #eee !important; }
+            .erledigt-row td { opacity: 0.6; }
+            @page { margin: 1.5cm; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────────────── -->
+<header>
+    <div>
+        <h1>&#128221; Einsatztagebuch</h1>
+        <div class="subtitle">Katastrophenschutz Emsland &mdash; planungs-tool.de</div>
+    </div>
+    <div>
+        <div id="clock"></div>
+        <div id="dateLabel"></div>
+    </div>
+</header>
+
+<!-- ─── Einsatz-Info ─────────────────────────────────────────── -->
+<div class="einsatz-bar">
+    <div><label>Einsatz/Ereignis:&nbsp;</label><input type="text" id="einsatzBezeichnung" placeholder="z.B. Hochwasser Ems 2026" oninput="saveState()"></div>
+    <div><label>Einsatzleiter:&nbsp;</label><input type="text" id="einsatzleiter" placeholder="Name" style="width:140px" oninput="saveState()"></div>
+    <div><label>Einsatznummer:&nbsp;</label><input type="text" id="einsatzNummer" placeholder="XXX/YY" style="width:100px" oninput="saveState()"></div>
+    <div><label>Beginn:&nbsp;</label><input type="text" id="einsatzBeginn" placeholder="TT.MM.JJJJ HH:MM" style="width:140px" oninput="saveState()"></div>
+</div>
+
+<!-- ─── Eingabe-Toolbar ──────────────────────────────────────── -->
+<div class="toolbar">
+    <select id="artSelect" title="Art der Meldung">
+        <option value="meldung">Meldung</option>
+        <option value="auftrag">Auftrag</option>
+        <option value="lagemeld">Lagemeldung</option>
+        <option value="info">Information</option>
+        <option value="alarm">&#9888; ALARM</option>
+    </select>
+    <input type="text" id="vonAnInput"    placeholder="Von / An" style="width:140px">
+    <input type="text" id="bearbeiterInput" placeholder="Bearbeiter(in)" style="width:140px" value="">
+    <input type="text" id="inhaltInput"   placeholder="Inhalt / Meldung – Enter zum Speichern…">
+    <button class="btn-add"    onclick="addEntry()">+ Eintrag</button>
+    <button class="btn-print"  onclick="window.print()">&#128438; Drucken / PDF</button>
+    <button class="btn-export" onclick="exportCSV()">&#128190; CSV Export</button>
+    <button class="btn-danger" onclick="clearAll()" title="Alle Einträge löschen">&#128465;</button>
+</div>
+
+<!-- ─── Tabelle ─────────────────────────────────────────────── -->
+<div class="table-container">
+    <table id="logTable">
+        <thead>
+            <tr>
+                <th style="width:46px; text-align:center">Nr.</th>
+                <th style="width:135px">Datum&nbsp;/&nbsp;Uhrzeit</th>
+                <th style="width:105px">Art</th>
+                <th style="width:130px">Von&nbsp;/&nbsp;An</th>
+                <th>Inhalt&nbsp;/&nbsp;Meldung</th>
+                <th style="width:115px">Bearbeiter</th>
+                <th style="width:46px; text-align:center" title="Erledigt">&#10003;</th>
+                <th style="width:30px"></th>
+            </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+    </table>
+</div>
+
+<!-- ─── Statusbar ───────────────────────────────────────────── -->
+<div class="status-bar">
+    <span id="entryCount">0 Einträge</span>
+    <span>Daten werden lokal im Browser gespeichert</span>
+    <span id="savedAt"></span>
+</div>
+
+<script>
+'use strict';
+
+const STORAGE_KEY = 'einsatztagebuch_v1';
+let entries = [];
+let counter = 0;
+
+/* ── Persistenz ──────────────────────────────────────────── */
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        entries  = d.entries  || [];
+        counter  = d.counter  || 0;
+        ['einsatzBezeichnung','einsatzleiter','einsatzNummer','einsatzBeginn'].forEach(id => {
+            if (d[id]) document.getElementById(id).value = d[id];
+        });
+    } catch (e) { /* Fehler still ignorieren */ }
+    renderTable();
+}
+
+function saveState() {
+    const payload = {
+        entries, counter,
+        einsatzBezeichnung: v('einsatzBezeichnung'),
+        einsatzleiter:      v('einsatzleiter'),
+        einsatzNummer:      v('einsatzNummer'),
+        einsatzBeginn:      v('einsatzBeginn')
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    document.getElementById('savedAt').textContent =
+        'Zuletzt gespeichert: ' + new Date().toLocaleTimeString('de-DE');
+}
+
+/* ── Eintrag hinzufügen ──────────────────────────────────── */
+function addEntry() {
+    const inhalt = v('inhaltInput').trim();
+    if (!inhalt) {
+        document.getElementById('inhaltInput').focus();
+        return;
+    }
+    counter++;
+    entries.push({
+        nr:          counter,
+        ts:          new Date().toLocaleString('de-DE', { dateStyle:'short', timeStyle:'medium' }),
+        art:         v('artSelect'),
+        vonAn:       v('vonAnInput').trim(),
+        inhalt:      inhalt,
+        bearbeiter:  v('bearbeiterInput').trim(),
+        erledigt:    false
+    });
+    document.getElementById('inhaltInput').value = '';
+    saveState();
+    renderTable();
+    const tc = document.querySelector('.table-container');
+    tc.scrollTop = tc.scrollHeight;
+}
+
+/* ── Eintrag löschen ─────────────────────────────────────── */
+function deleteEntry(nr) {
+    if (!confirm('Eintrag Nr.\u00a0' + nr + ' unwiderruflich löschen?')) return;
+    entries = entries.filter(e => e.nr !== nr);
+    saveState();
+    renderTable();
+}
+
+/* ── Erledigt-Toggle ─────────────────────────────────────── */
+function toggleErledigt(nr) {
+    const e = entries.find(e => e.nr === nr);
+    if (e) { e.erledigt = !e.erledigt; saveState(); renderTable(); }
+}
+
+/* ── Alle löschen ────────────────────────────────────────── */
+function clearAll() {
+    if (!confirm('Alle Einträge dieses Einsatztagebuches löschen?\nDiese Aktion kann nicht rückgängig gemacht werden!')) return;
+    entries = []; counter = 0;
+    localStorage.removeItem(STORAGE_KEY);
+    renderTable();
+}
+
+/* ── CSV-Export ──────────────────────────────────────────── */
+function exportCSV() {
+    const BOM = '\uFEFF';
+    const header = ['Nr.','Datum/Uhrzeit','Art','Von/An','Inhalt','Bearbeiter','Erledigt'];
+    const rows = entries.map(e => [
+        e.nr, e.ts, artLabel(e.art), e.vonAn, e.inhalt, e.bearbeiter, e.erledigt ? 'Ja' : 'Nein'
+    ].map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(';'));
+    const csv  = BOM + header.join(';') + '\r\n' + rows.join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    const ts   = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+    a.download = 'einsatztagebuch_' + ts + '.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+/* ── Tabelle rendern ─────────────────────────────────────── */
+function renderTable() {
+    const tbody = document.getElementById('logBody');
+    if (entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#555;">Noch keine Einträge. Ersten Eintrag oben erfassen.</td></tr>';
+    } else {
+        tbody.innerHTML = entries.map(e => {
+            const erd = e.erledigt;
+            return `<tr class="${e.art==='alarm'?'row-alarm':''} ${erd?'erledigt-row':''}">
+                <td style="text-align:center;font-weight:bold;">${e.nr}</td>
+                <td style="white-space:nowrap;">${esc(e.ts)}</td>
+                <td>${badgeHtml(e.art)}</td>
+                <td>${esc(e.vonAn)}</td>
+                <td>${esc(e.inhalt)}</td>
+                <td>${esc(e.bearbeiter)}</td>
+                <td style="text-align:center;"><input type="checkbox" class="erledigt-cb" ${erd?'checked':''} onchange="toggleErledigt(${e.nr})" title="Erledigt"></td>
+                <td><button class="del-btn" onclick="deleteEntry(${e.nr})" title="Eintrag löschen">&#x2715;</button></td>
+            </tr>`;
+        }).join('');
+    }
+    const total = entries.length;
+    const erl   = entries.filter(e => e.erledigt).length;
+    document.getElementById('entryCount').textContent =
+        total + ' Eintrag' + (total !== 1 ? 'e' : '') +
+        (erl > 0 ? ' (' + erl + ' erledigt)' : '');
+}
+
+/* ── Hilfsfunktionen ─────────────────────────────────────── */
+function v(id) { return document.getElementById(id).value; }
+
+function esc(s) {
+    if (s == null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function artLabel(art) {
+    return { meldung:'Meldung', auftrag:'Auftrag', lagemeld:'Lagemeldung', info:'Information', alarm:'ALARM' }[art] || art;
+}
+
+function badgeHtml(art) {
+    const map = {
+        meldung:  ['b-meldung',  'Meldung'],
+        auftrag:  ['b-auftrag',  'Auftrag'],
+        lagemeld: ['b-lagemeld', 'Lagem.'],
+        info:     ['b-info',     'Info'],
+        alarm:    ['b-alarm',    '&#9888; ALARM']
+    };
+    const [cls, label] = map[art] || ['b-info', art];
+    return `<span class="badge ${cls}">${label}</span>`;
+}
+
+/* ── Uhr ─────────────────────────────────────────────────── */
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+        now.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('dateLabel').textContent =
+        now.toLocaleDateString('de-DE', { weekday:'short', day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+/* ── Keyboard: Enter = Eintrag hinzufügen ────────────────── */
+document.getElementById('inhaltInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addEntry();
+});
+
+/* ── Init ────────────────────────────────────────────────── */
+updateClock();
+setInterval(updateClock, 1000);
+loadState();
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KatSchutz Rechner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#0a1628;color:#f0f4f8;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#hdr{background:#0f0f1a;border-bottom:2px solid #e85d04;padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+#hdr h1{font-size:.92rem;font-weight:800}#hdr h1 span{color:#e85d04}
+#tabs{display:flex;gap:0;background:#0d1b2a;border-bottom:1px solid rgba(232,93,4,.2);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+.tab{padding:.5rem .9rem;font-size:.77rem;font-weight:600;color:#8ba0b4;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.tab:hover{color:#f0f4f8;background:rgba(232,93,4,.05)}
+.tab.active{color:#e85d04;border-bottom-color:#e85d04;background:rgba(232,93,4,.08)}
+#content{flex:1;overflow-y:auto;padding:1.2rem}
+#content::-webkit-scrollbar{width:5px}#content::-webkit-scrollbar-thumb{background:#e85d04;border-radius:3px}
+.calc{max-width:880px;margin:0 auto}
+.calc h2{font-size:.98rem;font-weight:800;color:#f0f4f8;margin-bottom:.25rem;display:flex;align-items:center;gap:.5rem}
+.calc .sub{font-size:.73rem;color:#8ba0b4;margin-bottom:1.1rem;line-height:1.5}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:#0d1b2a;border:1px solid rgba(232,93,4,.2);border-radius:8px;padding:1rem}
+.card h3{font-size:.78rem;font-weight:700;color:#e85d04;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.7rem}
+.fl{font-size:.69rem;color:#8ba0b4;font-weight:600;margin-bottom:.18rem;display:block}
+.fi{width:100%;background:#112240;border:1.5px solid rgba(232,93,4,.2);color:#f0f4f8;border-radius:5px;padding:.36rem .58rem;font-size:.83rem;margin-bottom:.55rem}
+.fi:focus{outline:none;border-color:#e85d04}
+select.fi{cursor:pointer}
+.btn{width:100%;background:#e85d04;border:none;color:#fff;padding:.48rem;border-radius:5px;cursor:pointer;font-size:.83rem;font-weight:700;margin-top:.15rem}
+.btn:hover{background:#f97316}
+.res{background:#112240;border:1px solid rgba(232,93,4,.12);border-radius:6px;padding:.75rem;margin-top:.75rem}
+.res h4{font-size:.7rem;color:#e85d04;font-weight:700;text-transform:uppercase;margin-bottom:.55rem}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:.28rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.rr:last-child{border:none}
+.rl{font-size:.76rem;color:#8ba0b4}
+.rv{font-size:.88rem;font-weight:700;color:#f0f4f8}
+.rv.w{color:#fbbf24}.rv.d{color:#ef4444}.rv.ok{color:#22c55e}
+.sep{height:1px;background:rgba(232,93,4,.1);margin:.65rem 0}
+.info{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.18);border-radius:6px;padding:.55rem .75rem;font-size:.73rem;color:#8ba0b4;line-height:1.5;margin-top:.55rem}
+.info b{color:#60a5fa}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="hdr"><h1>🧮 KatSchutz <span>Rechner</span></h1><span style="font-size:.7rem;color:#8ba0b4">8 Rechner für den Einsatz</span></div>
+<div id="tabs">
+  <div class="tab active" data-tab="manv">👥 MANV</div>
+  <div class="tab" data-tab="kraefte">🚒 Kräfte</div>
+  <div class="tab" data-tab="pumpe">💧 Pumpe</div>
+  <div class="tab" data-tab="loeschwasser">🔥 Löschwasser</div>
+  <div class="tab" data-tab="versorgung">🍞 Versorgung</div>
+  <div class="tab" data-tab="gefahrgut">☢ Gefahrgut</div>
+  <div class="tab" data-tab="ausbreitung">💨 Ausbreitung</div>
+  <div class="tab" data-tab="trinkwasser">🚰 Trinkwasser</div>
+</div>
+<div id="content">
+
+<div id="tab-manv" class="calc">
+<h2>👥 MANV-Rechner</h2>
+<p class="sub">Massenanfall von Verletzten — Ressourcenbedarf nach Sichtungskategorien gemäß MANV-Schema</p>
+<div class="g2">
+<div class="card"><h3>Patienten</h3>
+<span class="fl">SK I Sofortbehandlung (Rot)</span><input class="fi" id="m1" type="number" min="0" value="0">
+<span class="fl">SK II Aufgeschoben (Gelb)</span><input class="fi" id="m2" type="number" min="0" value="0">
+<span class="fl">SK III Leichtverletzte (Grün)</span><input class="fi" id="m3" type="number" min="0" value="0">
+<span class="fl">SK IV Ohne Chance / Tote</span><input class="fi" id="m4" type="number" min="0" value="0">
+<span class="fl">Fahrzeit Krankenhaus (min)</span><input class="fi" id="mfz" type="number" min="1" value="15">
+<button class="btn" onclick="calcMANV()">Berechnen</button></div>
+<div id="manv-res" class="card hidden"><h3>Ergebnis</h3><div id="manv-out"></div></div>
+</div>
+<div class="info"><b>Richtwert:</b> NAW/NEF für SK I (1:1) · RTW für SK I+II (1:2) · KTW für SK III (1:4) · Umlaufzeit = 2× Fahrzeit + 30 min Übergabe</div>
+</div>
+
+<div id="tab-kraefte" class="calc hidden">
+<h2>🚒 Kräftekalkulator</h2>
+<p class="sub">Ablösungsplanung und Gesamtpersonalbedarf für Langzeiteinsätze nach FwDV 100</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Einsatzdauer (Stunden)</span><input class="fi" id="kd" type="number" min="1" value="24">
+<span class="fl">Kräfte gleichzeitig im Einsatz</span><input class="fi" id="ks" type="number" min="1" value="10">
+<span class="fl">Schichtlänge (Stunden)</span><input class="fi" id="ksl" type="number" min="2" max="12" value="8">
+<span class="fl">Ruhezeit zwischen Schichten (h)</span><input class="fi" id="kr" type="number" min="8" value="11">
+<span class="fl">An-/Abreisezeit pro Person (h)</span><input class="fi" id="ka" type="number" min="0" value="1">
+<span class="fl">Ausfallpuffer (%)</span><input class="fi" id="kp" type="number" min="0" max="50" value="10">
+<button class="btn" onclick="calcKraefte()">Berechnen</button></div>
+<div id="kraefte-res" class="card hidden"><h3>Ergebnis</h3><div id="kraefte-out"></div></div>
+</div>
+<div class="info"><b>FwDV 100:</b> Max. 8-12h Schicht · mind. 11h Ruhezeit · Faustregel: ~2,5-3 Gesamtkräfte pro Schichtkraft bei 8h/24h-Betrieb</div>
+</div>
+
+<div id="tab-pumpe" class="calc hidden">
+<h2>💧 Pumpenrechner</h2>
+<p class="sub">Druckverlust in Schlauchleitungen und erforderlicher Pumpendruck (FLKP)</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Schlauchtyp</span>
+<select class="fi" id="ptyp" onchange="calcPumpe()">
+<option value="75_1.2_6_400">B-Schlauch 75mm (1,2 bar/100m · max 6 bar)</option>
+<option value="52_3.5_8_100">C-Schlauch 52mm (3,5 bar/100m · max 8 bar)</option>
+<option value="110_0.4_6_800">A-Schlauch 110mm (0,4 bar/100m · max 6 bar)</option>
+<option value="25_14_8_25">D-Schlauch 25mm (14 bar/100m · max 8 bar)</option>
+</select>
+<span class="fl">Schlauchlänge (m)</span><input class="fi" id="pl" type="number" min="0" value="200" oninput="calcPumpe()">
+<span class="fl">Höhenunterschied (m, + = bergauf)</span><input class="fi" id="ph" type="number" value="0" oninput="calcPumpe()">
+<span class="fl">Anzahl Verteiler</span><input class="fi" id="pv" type="number" min="0" value="1" oninput="calcPumpe()">
+<span class="fl">Druck am Strahlrohr (bar)</span><input class="fi" id="pe" type="number" min="1" value="3.5" step="0.5" oninput="calcPumpe()">
+</div>
+<div class="card"><h3>Ergebnis</h3><div id="pumpe-out"></div></div>
+</div>
+<div class="info"><b>Richtwerte:</b> B-Schlauch 1,2 bar/100m @ 400 l/min · C-Schlauch 3,5 bar/100m @ 100 l/min · Höhe: 0,1 bar/m · Verteiler: 0,5 bar · +0,5 bar Sicherheitszuschlag</div>
+</div>
+
+<div id="tab-loeschwasser" class="calc hidden">
+<h2>🔥 Löschwasserrechner</h2>
+<p class="sub">Löschwasserbedarf nach DVGW W 405</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Nutzungsart / Fördermenge</span>
+<select class="fi" id="lwn" onchange="calcLW()">
+<option value="800">Wohngebäude ≤2 Geschosse (800 l/min)</option>
+<option value="1200">Wohngebäude 3+ Geschosse (1200 l/min)</option>
+<option value="1600">Gewerbe klein (1600 l/min)</option>
+<option value="2400">Gewerbe mittel (2400 l/min)</option>
+<option value="3200">Industrie / Großgebäude (3200 l/min)</option>
+</select>
+<span class="fl">Löschzeit (Minuten)</span>
+<select class="fi" id="lwz" onchange="calcLW()"><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select>
+<span class="fl">Vorhandene Tanklöschfahrzeuge (Liter gesamt)</span><input class="fi" id="lwt" type="number" min="0" value="2400" oninput="calcLW()">
+<button class="btn" onclick="calcLW()">Berechnen</button></div>
+<div class="card"><h3>Ergebnis</h3><div id="lw-out"></div></div>
+</div>
+<div class="info"><b>DVGW W 405:</b> Grundschutz = Fördermenge × Löschzeit · Ein B-Rohr ≈ 400 l/min · Ein C-Rohr ≈ 100-200 l/min</div>
+</div>
+
+<div id="tab-versorgung" class="calc hidden">
+<h2>🍞 Versorgungsrechner</h2>
+<p class="sub">Verpflegung, Wasser und Kraftstoff für Langzeiteinsätze</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Anzahl Einsatzkräfte</span><input class="fi" id="vp" type="number" min="1" value="50" oninput="calcVers()">
+<span class="fl">Einsatzdauer (Stunden)</span><input class="fi" id="vs" type="number" min="1" value="24" oninput="calcVers()">
+<span class="fl">Körperliche Belastung</span>
+<select class="fi" id="vb" onchange="calcVers()">
+<option value="1.0">Leicht (Bereitstellung, Führung)</option>
+<option value="1.3" selected>Mittel (normale Einsatztätigkeit)</option>
+<option value="1.6">Schwer (Brand, Bergung)</option>
+<option value="2.0">Sehr schwer (Vollschutz, CBRN)</option>
+</select>
+<span class="fl">Fahrzeuge (für Kraftstoff)</span><input class="fi" id="vf" type="number" min="0" value="10" oninput="calcVers()">
+<span class="fl">Verbrauch je Fahrzeug (l/h)</span><input class="fi" id="vv" type="number" min="0" value="5" step="0.5" oninput="calcVers()">
+</div>
+<div class="card"><h3>Ergebnis</h3><div id="vers-out"></div></div>
+</div>
+<div class="info"><b>Richtwert:</b> Wasser: 1-2 l/Person/h je nach Belastung · Warmverpflegung ab 8h empfohlen · Mahlzeiten alle 6-8h</div>
+</div>
+
+<div id="tab-gefahrgut" class="calc hidden">
+<h2>☢ Gefahrgut-Schutzabstände</h2>
+<p class="sub">Erstmaßnahmen-Richtwerte nach TUIS / ERICard — immer Fachberater hinzuziehen!</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Gefahrklasse</span>
+<select class="fi" id="gkl" onchange="calcGG()">
+<option value="gas_gift">2.3 Giftige Gase (Chlor, Ammoniak)</option>
+<option value="gas_entfl">2.1 Entzündbare Gase (LPG, Acetylen)</option>
+<option value="fl_entfl">3 Entzündbare Flüssigkeiten (Benzin)</option>
+<option value="gift">6.1 Giftige Stoffe</option>
+<option value="aetz">8 Ätzende Stoffe (Schwefelsäure)</option>
+<option value="radio">7 Radioaktive Stoffe</option>
+<option value="exp">1 Explosivstoffe</option>
+</select>
+<span class="fl">Menge</span>
+<select class="fi" id="gm" onchange="calcGG()">
+<option value="klein">Klein (&lt;50 kg/l)</option>
+<option value="mittel" selected>Mittel (50-500 kg/l)</option>
+<option value="gross">Groß (500-5000 kg / IBC)</option>
+<option value="tank">Tankwagen / Kesselwagen</option>
+</select>
+<span class="fl">Situation</span>
+<select class="fi" id="gl" onchange="calcGG()">
+<option value="ausl">Nur Austritt / Leckage</option>
+<option value="brand">Brand beteiligt</option>
+<option value="exp">Explosionsgefahr / BLEVE</option>
+</select>
+</div>
+<div class="card"><h3>Schutzabstände (Richtwerte)</h3><div id="gg-out"></div></div>
+</div>
+<div class="info"><b>⚠ WICHTIG:</b> ERICard: www.ericards.net · TUIS-Notruf: 0800 8645 000 · Immer Fachberater Gefahrgut hinzuziehen!</div>
+</div>
+
+<div id="tab-ausbreitung" class="calc hidden">
+<h2>💨 Ausbreitungsrechner</h2>
+<p class="sub">Vereinfachte Gaswolken-Ausbreitung nach Pasquill-Klassen für die erste Lageeinschätzung</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Freigesetzte Menge (kg)</span><input class="fi" id="am" type="number" min="0.1" value="100" oninput="calcAusb()">
+<span class="fl">Freisetzungsdauer (Minuten)</span><input class="fi" id="ad" type="number" min="1" value="30" oninput="calcAusb()">
+<span class="fl">Windgeschwindigkeit (m/s)</span><input class="fi" id="aw" type="number" min="0.1" value="3" step="0.5" oninput="calcAusb()">
+<span class="fl">Atmosphärische Stabilität</span>
+<select class="fi" id="ast" onchange="calcAusb()">
+<option value="A">A – Sehr instabil (sonnig, wenig Wind)</option>
+<option value="B">B – Instabil</option>
+<option value="C" selected>C – Leicht instabil</option>
+<option value="D">D – Neutral (bedeckt)</option>
+<option value="E">E – Leicht stabil (Nacht)</option>
+<option value="F">F – Stabil (klar, Nacht)</option>
+</select>
+<span class="fl">IDLH-Wert Stoff (mg/m³)</span><input class="fi" id="aidlh" type="number" min="0.001" value="25" oninput="calcAusb()">
+<span class="fl">Windrichtung (°, 0=Nord)</span><input class="fi" id="awr" type="number" min="0" max="360" value="270" oninput="calcAusb()">
+</div>
+<div class="card"><h3>Ergebnis</h3><div id="ausb-out"></div></div>
+</div>
+<div class="info"><b>Modell:</b> Vereinfachte Gauß-Ausbreitung. Für genaue Prognosen: ALOHA/CAMEO oder Fachberater Gefahrgut. IDLH = Immediately Dangerous to Life or Health.</div>
+</div>
+
+<div id="tab-trinkwasser" class="calc hidden">
+<h2>🚰 Trinkwasser-Notversorgung</h2>
+<p class="sub">Tagesbedarf und Behälterbedarf für Notversorgung nach THW / DVGW / WHO</p>
+<div class="g2">
+<div class="card"><h3>Parameter</h3>
+<span class="fl">Betroffene Personen</span><input class="fi" id="twp" type="number" min="1" value="500" oninput="calcTW()">
+<span class="fl">Versorgungsdauer (Tage)</span><input class="fi" id="twt" type="number" min="1" value="3" oninput="calcTW()">
+<span class="fl">Versorgungsstufe</span>
+<select class="fi" id="tws" onchange="calcTW()">
+<option value="2">Minimum 2 l/P/Tag (WHO – Überleben)</option>
+<option value="5" selected>Standard 5 l/P/Tag (DVGW Notversorgung)</option>
+<option value="10">Eingeschränkt 10 l/P/Tag</option>
+<option value="50">Mit Hygiene 50 l/P/Tag</option>
+<option value="120">Normalversorgung 120 l/P/Tag</option>
+</select>
+<span class="fl">Vorhandene Kapazität (Liter)</span><input class="fi" id="twv" type="number" min="0" value="0" oninput="calcTW()">
+<span class="fl">Transporteinheit (Liter)</span>
+<select class="fi" id="twf" onchange="calcTW()">
+<option value="1000">IBC 1.000 l</option>
+<option value="5000">Tankanhänger 5.000 l</option>
+<option value="10000">THW Trinkwassernotbrunnen 10.000 l/Tag</option>
+<option value="20000">TW-Tankwagen 20.000 l</option>
+</select>
+</div>
+<div class="card"><h3>Ergebnis</h3><div id="tw-out"></div></div>
+</div>
+<div class="info"><b>Richtwerte:</b> WHO Minimum 2 l/P/Tag · DVGW Notversorgung 5 l/P/Tag · Mit Hygiene 20-50 l/P/Tag · Krankenhaus 400-500 l/Bett/Tag</div>
+</div>
+
+</div>
+<script>
+document.querySelectorAll('.tab').forEach(function(t){
+  t.onclick=function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+    document.querySelectorAll('[id^="tab-"]').forEach(function(x){x.classList.add('hidden');});
+    t.classList.add('active');
+    document.getElementById('tab-'+t.dataset.tab).classList.remove('hidden');
+  };
+});
+function fmt(n,d){return Number(n).toFixed(d||0).replace('.',',');}
+function rr(l,v,c){return '<div class="rr"><span class="rl">'+l+'</span><span class="rv '+(c||'')+'">'+v+'</span></div>';}
+function sep(){return '<div class="sep"></div>';}
+function showRes(id,rows){document.getElementById(id).innerHTML='<div class="res"><h4>Ergebnis</h4>'+rows.join('')+'</div>';}
+
+function calcMANV(){
+  var s1=+document.getElementById('m1').value||0,s2=+document.getElementById('m2').value||0,s3=+document.getElementById('m3').value||0,s4=+document.getElementById('m4').value||0,fz=+document.getElementById('mfz').value||15;
+  var tot=s1+s2+s3+s4;if(!tot){document.getElementById('manv-res').classList.add('hidden');return;}
+  var uml=fz*2+30,naw=s1,rtw=s1+Math.ceil(s2/2),ktw=Math.ceil(s3/4);
+  var rows=[rr('Patienten gesamt',tot),rr('SK I Rot',s1,'d'),rr('SK II Gelb',s2,'w'),rr('SK III Grün',s3,'ok'),rr('SK IV',s4),sep(),
+    rr('NAW/NEF',naw+' Fahrzeuge','d'),rr('RTW',rtw+' Fahrzeuge','w'),rr('KTW',ktw+' Fahrzeuge','ok'),rr('RTW-Umlaufzeit',uml+' min'),sep(),
+    rr('LNA empfohlen',tot>=10?'Ja ✓':'Nein',''),rr('Org.-Leiter RD',tot>=10?'Ja ✓':'Nein',''),rr('Behandlungsplatz 25',tot>=25?'Erforderlich ⚠':'Nicht nötig','')];
+  document.getElementById('manv-res').classList.remove('hidden');
+  document.getElementById('manv-out').innerHTML='<div class="res"><h4>Ressourcenbedarf</h4>'+rows.join('')+'</div>';
+}
+
+function calcKraefte(){
+  var dauer=+document.getElementById('kd').value||24,staerke=+document.getElementById('ks').value||10,schicht=+document.getElementById('ksl').value||8,ruhe=+document.getElementById('kr').value||11,anr=+document.getElementById('ka').value||1,puf=+document.getElementById('kp').value||10;
+  var schichten=Math.ceil(dauer/schicht),block=schicht+ruhe+anr*2,eins=Math.max(1,Math.floor((dauer+ruhe)/block));
+  var netto=Math.ceil(schichten*staerke/eins),mit=Math.ceil(netto*(1+puf/100));
+  var rows=[rr('Schichten',schichten),rr('Kräfte/Schicht',staerke),sep(),rr('Personalbedarf netto',netto+' Personen','w'),rr('Mit Puffer ('+puf+'%)',mit+' Personen','d'),rr('Einsatzdauer',dauer+' h'),rr('Schichtmodell',schicht+'h Schicht / '+ruhe+'h Ruhe')];
+  showRes('kraefte-out',rows);document.getElementById('kraefte-res').classList.remove('hidden');
+}
+
+function calcPumpe(){
+  var v=document.getElementById('ptyp').value.split('_');
+  var reib=+v[1],maxP=+v[2],l=+document.getElementById('pl').value||0,h=+document.getElementById('ph').value||0,vt=+document.getElementById('pv').value||0,end=+document.getElementById('pe').value||3.5;
+  var rv=l/100*reib,hv=h*0.1,vv=vt*0.5,ges=rv+hv+vv+0.5,pump=end+ges;
+  var ok=pump<=maxP;
+  var rows=[rr('Reibungsverlust',fmt(rv,1)+' bar','w'),rr('Höhenverlust',fmt(hv,1)+' bar',''),rr('Verteiler',fmt(vv,1)+' bar',''),rr('Sicherheit','0,5 bar',''),sep(),rr('Gesamtverlust',fmt(ges,1)+' bar','w'),rr('Pumpendruck erforderlich',fmt(pump,1)+' bar',ok?'ok':'d'),rr('Max. zulässig',maxP+' bar',''),rr('Status',ok?'✅ erreichbar':'⚠ Druck zu hoch!',ok?'ok':'d')];
+  showRes('pumpe-out',rows);
+}
+
+function calcLW(){
+  var q=+document.getElementById('lwn').value||800,t=+document.getElementById('lwz').value||60,tank=+document.getElementById('lwt').value||0;
+  var ges=q*t,fehlt=Math.max(0,ges-tank),hyd=Math.ceil(q/800);
+  var rows=[rr('Bedarf gesamt',fmt(ges)+' l = '+fmt(ges/1000,1)+' m³','d'),rr('Tanklöschfahrzeuge',fmt(tank)+' l',''),rr('Noch zu beschaffen',fmt(fehlt)+' l',fehlt>0?'d':'ok'),sep(),rr('Hydranten (DN80) nötig',hyd+' Stück',''),rr('Status',fehlt<=0?'✅ Tank reicht':'⚠ Wasserversorgung sichern',fehlt<=0?'ok':'d')];
+  showRes('lw-out',rows);
+}
+
+function calcVers(){
+  var p=+document.getElementById('vp').value||1,s=+document.getElementById('vs').value||24,b=+document.getElementById('vb').value||1.3,f=+document.getElementById('vf').value||0,v=+document.getElementById('vv').value||5;
+  var wasser=p*s*b,mahl=Math.ceil(s/6),kraft=f*s*v;
+  var rows=[rr('Trinkwasser EK',fmt(wasser)+' l = '+fmt(wasser/1000,2)+' m³','w'),rr('Mahlzeiten',p*mahl+' Portionen ('+mahl+'× in '+s+'h)',''),rr('Warmverpflegung',s>=8?'✅ Empfohlen':'ℹ Optional',''),sep(),rr('Kraftstoff',fmt(kraft)+' l ('+f+' Fzg × '+s+'h × '+v+' l/h)','w'),rr('Reserve +10%',fmt(kraft*0.1)+' l','')];
+  showRes('vers-out',rows);
+}
+
+var GG={gas_gift:{klein:{ausl:200,brand:300,exp:400},mittel:{ausl:500,brand:600,exp:800},gross:{ausl:1000,brand:1500,exp:2000},tank:{ausl:2000,brand:3000,exp:5000}},gas_entfl:{klein:{ausl:100,brand:300,exp:500},mittel:{ausl:200,brand:600,exp:1000},gross:{ausl:400,brand:1000,exp:2000},tank:{ausl:800,brand:2000,exp:5000}},fl_entfl:{klein:{ausl:50,brand:200,exp:500},mittel:{ausl:100,brand:400,exp:1000},gross:{ausl:200,brand:800,exp:2000},tank:{ausl:500,brand:1500,exp:5000}},gift:{klein:{ausl:100,brand:200,exp:300},mittel:{ausl:300,brand:500,exp:800},gross:{ausl:600,brand:1000,exp:2000},tank:{ausl:1000,brand:2000,exp:5000}},aetz:{klein:{ausl:50,brand:100,exp:200},mittel:{ausl:100,brand:200,exp:500},gross:{ausl:200,brand:500,exp:1000},tank:{ausl:500,brand:1000,exp:3000}},radio:{klein:{ausl:200,brand:500,exp:1000},mittel:{ausl:500,brand:1000,exp:2000},gross:{ausl:1000,brand:2000,exp:5000},tank:{ausl:2000,brand:5000,exp:10000}},exp:{klein:{ausl:200,brand:500,exp:1000},mittel:{ausl:300,brand:800,exp:2000},gross:{ausl:500,brand:1500,exp:5000},tank:{ausl:1000,brand:3000,exp:10000}}};
+function calcGG(){
+  var kl=document.getElementById('gkl').value,m=document.getElementById('gm').value,l=document.getElementById('gl').value;
+  var d=GG[kl]?.[m]?.[l]||200;
+  var rows=[rr('Schutzabstand allseitig',d+' m','d'),rr('In Windrichtung',Math.round(d*1.5)+' m','d'),rr('Quer zum Wind',Math.round(d/2)+' m','w'),sep(),rr('Bereitstellungsraum',Math.round(d*1.5)+' m Abstand',''),rr('EL-Standort',Math.round(d*2)+' m seitlich/rückwärtig',''),sep(),'<div class="rr"><span class="rl" style="color:#ef4444;font-size:.73rem">⚠ Immer ERICard + Fachberater Gefahrgut!</span></div>'];
+  showRes('gg-out',rows);
+}
+
+var SPar={A:[0.22,0.2],B:[0.16,0.12],C:[0.11,0.08],D:[0.08,0.06],E:[0.06,0.05],F:[0.04,0.03]};
+function calcAusb(){
+  var menge=+document.getElementById('am').value||100,dauer=+document.getElementById('ad').value||30,wind=+document.getElementById('aw').value||3,stab=document.getElementById('ast').value,idlh=+document.getElementById('aidlh').value||25,windr=+document.getElementById('awr').value||270;
+  var Q=menge/(dauer*60),idlhkg=idlh/1e6,sp=SPar[stab]||SPar.C;
+  var xMax=20000;
+  for(var x=10;x<=20000;x+=10){var sy=sp[0]*Math.pow(x,0.9),sz=sp[1]*Math.pow(x,0.9),C=Q/(Math.PI*sy*sz*wind);if(C<=idlhkg){xMax=x;break;}}
+  var ausbrR=(windr+180)%360;
+  var rows=[rr('Emissionsrate',fmt(Q*1000,1)+' g/s',''),rr('IDLH-Gefährdungszone',xMax>=20000?'>20 km':fmt(xMax)+' m','d'),rr('Max. Wolkenbreite',fmt(xMax/2)+' m (Mitte)','w'),sep(),rr('Ausbreitungsrichtung',ausbrR+'° (entgegen Wind)',''),rr('Sperrbereich (Erstmaßnahme)',Math.min(xMax,500)+' m Radius','d'),sep(),'<div class="rr"><span class="rl" style="color:#fbbf24;font-size:.72rem">ℹ Vereinfacht — für genaue Prognosen ALOHA/CAMEO</span></div>'];
+  showRes('ausb-out',rows);
+}
+
+function calcTW(){
+  var p=+document.getElementById('twp').value||1,t=+document.getElementById('twt').value||1,s=+document.getElementById('tws').value||5,v=+document.getElementById('twv').value||0,f=+document.getElementById('twf').value||1000;
+  var tag=p*s,ges=tag*t,fehlt=Math.max(0,ges-v),beh=Math.ceil(fehlt/f);
+  var rows=[rr('Tagesbedarf',fmt(tag)+' l','w'),rr('Gesamtbedarf',fmt(ges)+' l = '+fmt(ges/1000,1)+' m³','d'),rr('Vorhanden',fmt(v)+' l',''),rr('Zu beschaffen',fmt(fehlt)+' l',fehlt>0?'d':'ok'),sep(),rr('Transporte/Befüllungen',beh+' × '+fmt(f)+' l',beh>5?'d':'w'),rr('Status',fehlt<=0?'✅ Vorrat reicht':'⚠ Nachversorgung nötig',fehlt<=0?'ok':'d')];
+  showRes('tw-out',rows);
+}
+
+calcPumpe();calcLW();calcVers();calcGG();calcAusb();calcTW();
+</script>
+</body>
+</html>
+
